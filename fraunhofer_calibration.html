@@ -1425,95 +1425,110 @@ function wlToX(wl) { return (wl - calib.b) / calib.a; }
 function drawOverlay() {
   const dpr = window.devicePixelRatio || 1;
   const dispW = overlayC.parentElement.clientWidth || window.innerWidth - 48;
-  const naturalH = Math.round(dispW * imgH / imgW);
-  // Enforce a minimum canvas height so the profile is always readable
-  const minH = Math.max(120, Math.round(dispW * 0.18));
-  const dispH = Math.max(naturalH, minH);
-  overlayC.width  = dispW * dpr;
+  const W = dispW;
+  const naturalH = Math.round(W * imgH / imgW);
+
+  // Black annotation strip above spectrum — height scales with font size
+  const fontSize  = Math.max(9, Math.round(W * 0.013));
+  const lineH     = Math.ceil(fontSize * 1.65);
+  const ROWS      = 2;
+  const PAD       = 6;
+  const stripH    = ROWS * lineH + PAD * 2;
+
+  const dispH = stripH + naturalH;
+  overlayC.width  = W * dpr;
   overlayC.height = dispH * dpr;
-  overlayC.style.width  = dispW + 'px';
+  overlayC.style.width  = W + 'px';
   overlayC.style.height = dispH + 'px';
 
   const ctx = overlayC.getContext('2d');
   ctx.scale(dpr, dpr);
-  const W = dispW, H = dispH;
 
-  // Draw spectrum centered vertically inside the (possibly padded) canvas
-  const imgY = Math.round((dispH - naturalH) / 2);
-  ctx.drawImage(specImg, 0, imgY, W, naturalH);
+  // ── Black annotation strip ──
+  ctx.fillStyle = '#0a0b0e';
+  ctx.fillRect(0, 0, W, stripH);
+  // Subtle separator line
+  ctx.strokeStyle = '#252830';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, stripH); ctx.lineTo(W, stripH); ctx.stroke();
+
+  // ── Spectrum image below strip ──
+  ctx.drawImage(specImg, 0, stripH, W, naturalH);
 
   const { xa, xd, xb } = getSliderVals();
   const scaleX = W / imgW;
-  const scaleY = H / imgH;
 
-  // Compute profile y-coords in display space
-  // Note: avoid spread operator on large TypedArrays — fails silently on mobile Safari
+  // ── Brightness profile (within spectrum area) ──
   let pmin = Infinity, pmax = -Infinity;
   for (let i = 0; i < profile.length; i++) {
     if (profile[i] < pmin) pmin = profile[i];
     if (profile[i] > pmax) pmax = profile[i];
   }
-  const profY = x => { const norm = (profile[x] - pmin) / (pmax - pmin + 1e-9); return H * (5/6 - (2/3) * norm); };
-
-  // Draw profile
+  const profY = x => {
+    const norm = (profile[x] - pmin) / (pmax - pmin + 1e-9);
+    return stripH + naturalH * (5/6 - (2/3) * norm);
+  };
   ctx.beginPath();
   ctx.strokeStyle = 'rgba(255,255,255,0.78)';
   ctx.lineWidth = 1.5;
   for (let x = 0; x < imgW; x++) {
     const px = x * scaleX;
-    const py = profY(x);
-    x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    x === 0 ? ctx.moveTo(px, profY(x)) : ctx.lineTo(px, profY(x));
   }
   ctx.stroke();
 
-  // Secondary Fraunhofer lines — stagger labels across two rows to avoid overlap
-  const tickH = H / 7;
-  const secFontSize = Math.max(9, Math.round(W * 0.012));
-  const lineH = secFontSize * 1.3;
-  const shortLabel = W < 520;  // on narrow canvases show only the line name, no wavelength
-  let secIdx = 0;
+  // ── Collect all visible annotations ──
+  const shortLabel = W < 520;
+  const anchorActive = calibMode === '2pt'
+    ? new Set([WL_D, WL_HB])
+    : new Set([WL_HA, WL_D, WL_HB]);
+
+  const annotations = [];
   ALL_LINES.forEach(({ name, wl, elem, kind }) => {
-    if (ANCHOR_WLS.has(wl)) return;
     const xp = wlToX(wl) * scaleX;
-    if (xp < 0 || xp > W) return;
-    const lc = kind === 'atm' ? 'rgba(100,210,255,0.55)' : 'rgba(255,255,255,0.55)';
-    ctx.strokeStyle = lc;
-    ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.moveTo(xp, 0);         ctx.lineTo(xp, tickH);  ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(xp, H - tickH); ctx.lineTo(xp, H);      ctx.stroke();
-    ctx.fillStyle = lc;
-    ctx.font = `bold ${secFontSize}px "DM Mono", monospace`;
+    if (xp < 2 || xp > W - 2) return;
+    const isAnchor = anchorActive.has(wl);
+    const col = isAnchor
+      ? (wl === WL_HA ? COLORS.ha : wl === WL_D ? COLORS.d : COLORS.hb)
+      : (kind === 'atm' ? 'rgba(100,210,255,0.7)' : 'rgba(200,200,200,0.7)');
     const lbl = shortLabel ? name : `${name}(${elem}/${wl.toFixed(1)}nm)`;
-    const row = secIdx % 2;  // alternate rows 0 / 1
-    ctx.fillText(lbl, xp + W*0.002, lineH * row + 4);
-    secIdx++;
+    annotations.push({ xp, lbl, col, isAnchor, wl });
   });
 
-  // Anchor lines
-  const anchorFontSize = Math.max(11, Math.round(W * 0.014));
-  const anchorList = calibMode === '2pt'
-    ? [
-        { xp: xd * scaleX, name: 'D₂(Na/589.0nm)', col: COLORS.d  },
-        { xp: xb * scaleX, name: 'F(Hβ/486.1nm)',  col: COLORS.hb },
-      ]
-    : [
-        { xp: xa * scaleX, name: 'C(Hα/656.3nm)',  col: COLORS.ha },
-        { xp: xd * scaleX, name: 'D₂(Na/589.0nm)', col: COLORS.d  },
-        { xp: xb * scaleX, name: 'F(Hβ/486.1nm)',  col: COLORS.hb },
-      ];
-  anchorList.forEach(({ xp, name, col }) => {
+  // Assign label rows: sort by x, alternate even→row 0 / odd→row 1
+  annotations.sort((a, b) => a.xp - b.xp);
+  annotations.forEach((ann, i) => { ann.row = i % ROWS; });
+
+  // ── Vertical lines ──
+  const tickH = Math.min(Math.round(naturalH * 0.18), 20);
+  annotations.forEach(({ xp, col, isAnchor }) => {
     ctx.strokeStyle = col;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, H); ctx.stroke();
+    if (isAnchor) {
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, dispH); ctx.stroke();
+    } else {
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(xp, stripH);           ctx.lineTo(xp, stripH + tickH);       ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xp, dispH - tickH);    ctx.lineTo(xp, dispH);                ctx.stroke();
+    }
+  });
+
+  // ── Labels in annotation strip ──
+  ctx.font = `bold ${fontSize}px "DM Mono", monospace`;
+  annotations.forEach(({ xp, lbl, col, row }) => {
+    const ly = PAD + row * lineH + fontSize;
     ctx.fillStyle = col;
-    ctx.font = `bold ${anchorFontSize}px "DM Mono", monospace`;
-    ctx.fillText(name, xp + W*0.003, H*0.05);
-    // dot on profile
+    const tw = ctx.measureText(lbl).width;
+    const lx = Math.min(xp + 3, W - tw - 3);
+    ctx.fillText(lbl, lx, ly);
+  });
+
+  // ── Anchor dots on profile ──
+  annotations.filter(a => a.isAnchor).forEach(({ xp, col }) => {
     const xi = Math.round(xp / scaleX);
     if (xi >= 0 && xi < imgW) {
-      const py = profY(xi);
       ctx.beginPath();
-      ctx.arc(xp, py, 7, 0, Math.PI*2);
+      ctx.arc(xp, profY(xi), 6, 0, Math.PI * 2);
       ctx.fillStyle = col;
       ctx.fill();
     }
