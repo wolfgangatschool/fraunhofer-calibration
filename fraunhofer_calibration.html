@@ -39,6 +39,10 @@
   /* ── Header ── */
   header {
     border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
     padding: 36px 48px 28px;
     display: flex;
     align-items: flex-end;
@@ -542,7 +546,7 @@
      RESPONSIVE  —  iPad 11" portrait  ≤ 900px
   ══════════════════════════════════════════════════════════ */
   @media (max-width: 900px) {
-    header { padding: 24px 24px 20px; }
+    .header-inner { padding: 24px 24px 20px; }
     .header-title h1 { font-size: 26px; }
     main { padding: 0 20px 40px; }
 
@@ -581,7 +585,7 @@
      RESPONSIVE  —  iPhone  ≤ 500px
   ══════════════════════════════════════════════════════════ */
   @media (max-width: 500px) {
-    header { padding: 18px 16px 16px; }
+    .header-inner { padding: 18px 16px 16px; }
     .header-title h1 { font-size: 20px; line-height: 1.25; }
     .header-title p { font-size: 11px; margin-top: 5px; }
 
@@ -672,9 +676,11 @@
 <body>
 
 <header>
-  <div class="header-title">
-    <h1>Sonnenspektrum · <em>Fraunhofer</em>-Absorptionslinien</h1>
-    <p>Interaktive Wellenlängenkalibrierung</p>
+  <div class="header-inner">
+    <div class="header-title">
+      <h1>Sonnenspektrum · <em>Fraunhofer</em>-Absorptionslinien</h1>
+      <p>Interaktive Wellenlängenkalibrierung</p>
+    </div>
   </div>
 </header>
 
@@ -797,7 +803,7 @@
 
     <!-- Example spectra -->
     <div style="display:flex; flex-direction:column; gap:10px;">
-      <p style="font-size:13px; font-family:'DM Mono',monospace; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim);">Verwende ein Spektrum vom MPI-Handyspektrometer</p>
+      <p style="font-size:13px; font-family:'DM Mono',monospace; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); white-space:nowrap;">Verwende ein Spektrum vom MPI-Handyspektrometer</p>
       <div style="background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; flex:1; display:flex; flex-direction:column;">
         <button class="example-btn" onclick="loadExampleSpectrum('example_spectra/mpi_handyspektrometer_original_dämmerung.HEIC')">
           <span class="example-name">Originaler Spalt, Dämmerung</span>
