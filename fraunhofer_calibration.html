@@ -1429,10 +1429,10 @@ function drawOverlay() {
   const naturalH = Math.round(W * imgH / imgW);
 
   // Black annotation strip above spectrum — height scales with font size
-  const fontSize  = Math.max(9, Math.round(W * 0.013));
-  const lineH     = Math.ceil(fontSize * 1.65);
+  const fontSize  = Math.max(11, Math.round(W * 0.016));
+  const lineH     = Math.ceil(fontSize * 2.0);
   const ROWS      = 2;
-  const PAD       = 6;
+  const PAD       = 12;
   const stripH    = ROWS * lineH + PAD * 2;
 
   const dispH = stripH + naturalH;
