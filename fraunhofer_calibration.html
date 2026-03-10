@@ -1441,7 +1441,7 @@ function drawOverlay() {
   ctx.lineWidth = 1.5;
   for (let x = 0; x < imgW; x++) {
     const px = x * scaleX;
-    const py = profY(x) * scaleY;
+    const py = profY(x);
     x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
   }
   ctx.stroke();
@@ -1483,7 +1483,7 @@ function drawOverlay() {
     // dot on profile
     const xi = Math.round(xp / scaleX);
     if (xi >= 0 && xi < imgW) {
-      const py = profY(xi) * scaleY;
+      const py = profY(xi);
       ctx.beginPath();
       ctx.arc(xp, py, 7, 0, Math.PI*2);
       ctx.fillStyle = col;
