@@ -1527,15 +1527,17 @@ function drawOverlay() {
 
   // ── Vertical lines ──
   const tickH = Math.min(Math.round(naturalH * 0.18), 20);
-  annotations.forEach(({ xp, col, isAnchor }) => {
+  annotations.forEach(({ xp, col, isAnchor, row }) => {
     ctx.strokeStyle = col;
+    // Label baseline y — line extends from just below label text down into spectrum
+    const labelBottom = PAD + row * lineH + fontSize + 3;
     if (isAnchor) {
       ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, dispH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xp, labelBottom); ctx.lineTo(xp, dispH); ctx.stroke();
     } else {
       ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(xp, stripH);           ctx.lineTo(xp, stripH + tickH);       ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(xp, dispH - tickH);    ctx.lineTo(xp, dispH);                ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xp, labelBottom); ctx.lineTo(xp, stripH + tickH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xp, dispH - tickH); ctx.lineTo(xp, dispH);        ctx.stroke();
     }
   });
 
