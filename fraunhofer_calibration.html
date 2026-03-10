@@ -1424,8 +1424,11 @@ function wlToX(wl) { return (wl - calib.b) / calib.a; }
 // ─────────────────────────────────────────────────────────────────────────────
 function drawOverlay() {
   const dpr = window.devicePixelRatio || 1;
-  const dispW = overlayC.parentElement.clientWidth;
-  const dispH = Math.round(dispW * imgH / imgW);
+  const dispW = overlayC.parentElement.clientWidth || window.innerWidth - 48;
+  const naturalH = Math.round(dispW * imgH / imgW);
+  // Enforce a minimum canvas height so the profile is always readable
+  const minH = Math.max(120, Math.round(dispW * 0.18));
+  const dispH = Math.max(naturalH, minH);
   overlayC.width  = dispW * dpr;
   overlayC.height = dispH * dpr;
   overlayC.style.width  = dispW + 'px';
@@ -1435,8 +1438,9 @@ function drawOverlay() {
   ctx.scale(dpr, dpr);
   const W = dispW, H = dispH;
 
-  // Draw spectrum
-  ctx.drawImage(specImg, 0, 0, W, H);
+  // Draw spectrum centered vertically inside the (possibly padded) canvas
+  const imgY = Math.round((dispH - naturalH) / 2);
+  ctx.drawImage(specImg, 0, imgY, W, naturalH);
 
   const { xa, xd, xb } = getSliderVals();
   const scaleX = W / imgW;
