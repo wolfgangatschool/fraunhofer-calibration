@@ -581,6 +581,13 @@
       font-size: 13px !important;
     }
 
+    /* Crop description: stack columns on mobile */
+    #cropSection > div[style*="grid-template-columns:1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+      gap: 16px 0 !important;
+      padding: 16px !important;
+    }
+
     /* Crop layout: fully stacked */
     .crop-layout { gap: 12px; }
     .crop-sidebar { grid-template-columns: 1fr; }
@@ -612,6 +619,17 @@
 
     /* Section labels */
     .section-label { font-size: 11px; }
+
+    /* Interactive section spacing */
+    .canvas-wrap { margin-bottom: 14px; }
+    .sliders { gap: 10px; margin-bottom: 14px; }
+    .fit-status { margin-bottom: 14px; }
+    .render-btn { margin-bottom: 20px; }
+
+    /* Method selector tighter on mobile */
+    .desc-block.method-selector { margin-top: 16px !important; padding: 14px 14px; }
+    .anchor-hints { margin-top: 12px; }
+    .desc-unified { margin: 12px 0 20px; }
   }
 
   /* ── Touch-friendly: bigger crop handles on touch devices ── */
@@ -746,6 +764,16 @@
   <!-- ── Crop & Rotate Step ── -->
   <div id="cropSection" class="hidden">
     <div class="section-label">Bild ausrichten &amp; zuschneiden</div>
+    <div style="background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:20px 26px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:0 32px;">
+      <div>
+        <p style="font-size:13px; font-family:'DM Mono',monospace; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:10px;">Ausrichtung</p>
+        <p style="font-family:'Playfair Display',serif; font-size:16px; font-weight:400; color:var(--text); line-height:1.75;">Das Spektrum muss waagrecht ausgerichtet sein — <span style="color:var(--accent-ha); font-weight:400;">Rot</span> links, <span style="color:var(--accent-hb); font-weight:400;">Blau/Violett</span> rechts. Verwende die 90°-Schaltflächen für grobe Rotation und den Feinkorrektur-Regler zum Begradigen.</p>
+      </div>
+      <div>
+        <p style="font-size:13px; font-family:'DM Mono',monospace; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:10px;">Zuschnitt</p>
+        <p style="font-family:'Playfair Display',serif; font-size:16px; font-weight:400; color:var(--text); line-height:1.75;">Schneide oben und unten so zu, dass nur das reine Spektralband übrig bleibt — ohne Beschriftungen, Ränder oder dunkle Streifen. Links und rechts können unverändert bleiben.</p>
+      </div>
+    </div>
     <div class="crop-layout">
       <!-- Left sidebar: rotation + crop controls -->
       <div class="crop-sidebar">
@@ -1413,79 +1441,126 @@ function wlToX(wl) { return (wl - calib.b) / calib.a; }
 // ─────────────────────────────────────────────────────────────────────────────
 function drawOverlay() {
   const dpr = window.devicePixelRatio || 1;
-  const dispW = overlayC.parentElement.clientWidth;
-  const dispH = Math.round(dispW * imgH / imgW);
-  overlayC.width  = dispW * dpr;
+  const dispW = overlayC.parentElement.clientWidth || window.innerWidth - 48;
+  const W = dispW;
+  const naturalH = Math.round(W * imgH / imgW);
+
+  // Black annotation strip above spectrum — height scales with font size
+  const fontSize  = Math.max(11, Math.round(W * 0.016));
+  const lineH     = Math.ceil(fontSize * 2.0);
+  const ROWS      = 2;
+  const PAD       = 12;
+  const stripH    = ROWS * lineH + PAD * 2;
+
+  const dispH = stripH + naturalH;
+  overlayC.width  = W * dpr;
   overlayC.height = dispH * dpr;
-  overlayC.style.width  = dispW + 'px';
+  overlayC.style.width  = W + 'px';
   overlayC.style.height = dispH + 'px';
 
   const ctx = overlayC.getContext('2d');
   ctx.scale(dpr, dpr);
-  const W = dispW, H = dispH;
 
-  // Draw spectrum
-  ctx.drawImage(specImg, 0, 0, W, H);
+  // ── Black annotation strip ──
+  ctx.fillStyle = '#0a0b0e';
+  ctx.fillRect(0, 0, W, stripH);
+  // Subtle separator line
+  ctx.strokeStyle = '#252830';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, stripH); ctx.lineTo(W, stripH); ctx.stroke();
+
+  // ── Spectrum image below strip ──
+  ctx.drawImage(specImg, 0, stripH, W, naturalH);
 
   const { xa, xd, xb } = getSliderVals();
   const scaleX = W / imgW;
-  const scaleY = H / imgH;
 
-  // Compute profile y-coords in display space
-  const pmin = Math.min(...profile), pmax = Math.max(...profile);
-  const profY = x => { const norm = (profile[x] - pmin) / (pmax - pmin + 1e-9); return H * (5/6 - (2/3) * norm); };
-
-  // Draw profile
+  // ── Brightness profile (within spectrum area) ──
+  let pmin = Infinity, pmax = -Infinity;
+  for (let i = 0; i < profile.length; i++) {
+    if (profile[i] < pmin) pmin = profile[i];
+    if (profile[i] > pmax) pmax = profile[i];
+  }
+  const profY = x => {
+    const norm = (profile[x] - pmin) / (pmax - pmin + 1e-9);
+    return stripH + naturalH * (5/6 - (2/3) * norm);
+  };
   ctx.beginPath();
   ctx.strokeStyle = 'rgba(255,255,255,0.78)';
   ctx.lineWidth = 1.5;
   for (let x = 0; x < imgW; x++) {
     const px = x * scaleX;
-    const py = profY(x) * scaleY;
-    x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    x === 0 ? ctx.moveTo(px, profY(x)) : ctx.lineTo(px, profY(x));
   }
   ctx.stroke();
 
-  // Secondary Fraunhofer lines
-  const tickH = H / 7;
+  // ── Collect all visible annotations ──
+  const shortLabel = W < 520;
+  const anchorActive = calibMode === '2pt'
+    ? new Set([WL_D, WL_HB])
+    : new Set([WL_HA, WL_D, WL_HB]);
+
+  const annotations = [];
   ALL_LINES.forEach(({ name, wl, elem, kind }) => {
-    if (ANCHOR_WLS.has(wl)) return;
-    const xp = wlToX(wl) * scaleX;
-    if (xp < 0 || xp > W) return;
-    const lc = kind === 'atm' ? 'rgba(100,210,255,0.55)' : 'rgba(255,255,255,0.55)';
-    ctx.strokeStyle = lc;
-    ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.moveTo(xp, 0);          ctx.lineTo(xp, tickH);      ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(xp, H - tickH);   ctx.lineTo(xp, H);         ctx.stroke();
-    ctx.fillStyle = lc;
-    ctx.font = `bold 14px "DM Mono", monospace`;
-    ctx.fillText(`${name}(${elem}/${wl.toFixed(1)}nm)`, xp + W*0.002, H*0.04);
+    const isAnchor = anchorActive.has(wl);
+    // Anchor lines must use slider positions (not calibrated wavelength positions)
+    // so visual lines stay aligned with drag hotspots even in 3pt least-squares mode
+    let xp;
+    if (isAnchor) {
+      if      (wl === WL_HA) xp = xa * scaleX;
+      else if (wl === WL_D)  xp = xd * scaleX;
+      else                   xp = xb * scaleX;
+    } else {
+      xp = wlToX(wl) * scaleX;
+    }
+    if (xp < 2 || xp > W - 2) return;
+    const col = isAnchor
+      ? (wl === WL_HA ? COLORS.ha : wl === WL_D ? COLORS.d : COLORS.hb)
+      : (kind === 'atm' ? 'rgba(100,210,255,0.7)' : 'rgba(200,200,200,0.7)');
+    const lbl = shortLabel ? name : `${name}(${elem}/${wl.toFixed(1)}nm)`;
+    annotations.push({ xp, lbl, col, isAnchor, wl });
   });
 
-  // Anchor lines
-  const anchorList = calibMode === '2pt'
-    ? [
-        { xp: xd * scaleX, name: 'D₂(Na/589.0nm)', col: COLORS.d  },
-        { xp: xb * scaleX, name: 'F(Hβ/486.1nm)',  col: COLORS.hb },
-      ]
-    : [
-        { xp: xa * scaleX, name: 'C(Hα/656.3nm)',  col: COLORS.ha },
-        { xp: xd * scaleX, name: 'D₂(Na/589.0nm)', col: COLORS.d  },
-        { xp: xb * scaleX, name: 'F(Hβ/486.1nm)',  col: COLORS.hb },
-      ];
-  anchorList.forEach(({ xp, name, col }) => {
+  // Assign label rows: sort by x, alternate even→row 0 / odd→row 1
+  annotations.sort((a, b) => a.xp - b.xp);
+  annotations.forEach((ann, i) => { ann.row = i % ROWS; });
+
+  // ── Vertical lines (drawn first so labels render on top) ──
+  const tickH = Math.min(Math.round(naturalH * 0.18), 20);
+  annotations.forEach(({ xp, col, isAnchor }) => {
     ctx.strokeStyle = col;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, H); ctx.stroke();
+    if (isAnchor) {
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, dispH); ctx.stroke();
+    } else {
+      ctx.lineWidth = 1.2;
+      // Line from top of strip through spectrum top tick
+      ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, stripH + tickH); ctx.stroke();
+      // Short tick at bottom of spectrum
+      ctx.beginPath(); ctx.moveTo(xp, dispH - tickH); ctx.lineTo(xp, dispH); ctx.stroke();
+    }
+  });
+
+  // ── Labels in annotation strip (drawn over lines) ──
+  ctx.font = `bold ${fontSize}px "DM Mono", monospace`;
+  annotations.forEach(({ xp, lbl, col, row }) => {
+    const ly = PAD + row * lineH + fontSize;
     ctx.fillStyle = col;
-    ctx.font = `bold 16px "DM Mono", monospace`;
-    ctx.fillText(name, xp + W*0.003, H*0.05);
-    // dot on profile
+    const tw = ctx.measureText(lbl).width;
+    const lx = Math.min(xp + 3, W - tw - 3);
+    // Small black background behind label so the line doesn't bleed through the text
+    ctx.fillStyle = 'rgba(10,11,14,0.75)';
+    ctx.fillRect(lx - 2, ly - fontSize, tw + 4, fontSize + 3);
+    ctx.fillStyle = col;
+    ctx.fillText(lbl, lx, ly);
+  });
+
+  // ── Anchor dots on profile ──
+  annotations.filter(a => a.isAnchor).forEach(({ xp, col }) => {
     const xi = Math.round(xp / scaleX);
     if (xi >= 0 && xi < imgW) {
-      const py = profY(xi) * scaleY;
       ctx.beginPath();
-      ctx.arc(xp, py, 7, 0, Math.PI*2);
+      ctx.arc(xp, profY(xi), 6, 0, Math.PI * 2);
       ctx.fillStyle = col;
       ctx.fill();
     }
