@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sonnenspektrum · Fraunhofer Kalibrierung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://unpkg.com/heic2any@0.0.4/dist/heic2any.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0e;
+    --panel: #13151b;
+    --panel2: #181b22;
+    --border: #252830;
+    --accent-ha: #ff7070;
+    --accent-d:  #ffb455;
+    --accent-hb: #6ed0ff;
+    --text: #b8bcc8;
+    --text-dim: #4e5464;
+    --text-bright: #e4e6ee;
+    --gold: #d4a85a;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 36px 48px 28px;
+    display: flex;
+    align-items: flex-end;
+    gap: 40px;
+  }
+  .header-title h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-size: 34px;
+    color: var(--text-bright);
+    letter-spacing: 0.01em;
+    line-height: 1.15;
+  }
+  .header-title h1 em {
+    color: var(--gold);
+  }
+  .header-title p {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+  .header-lines { display: none; }
+
+  /* ── Anchor line hints ── */
+  .anchor-hints {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 28px 0 0;
+    background: var(--panel);
+    overflow: hidden;
+  }
+  .anchor-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .anchor-row:hover { background: var(--panel2); }
+  .anchor-row:last-child { border-bottom: none; }
+  .anchor-hint-text {
+    flex: 1;
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .anchor-row .badge {
+    flex-shrink: 0;
+    font-size: 12px;
+    padding: 6px 14px;
+    letter-spacing: 0.04em;
+  }
+  .badge {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    border: 1px solid currentColor;
+    background: transparent;
+  }
+  .badge-ha  { color: var(--accent-ha); }
+  .badge-d   { color: var(--accent-d);  }
+  .badge-hb  { color: var(--accent-hb); }
+
+  /* ── Main layout ── */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 48px 60px;
+  }
+
+  /* ── Description ── */
+  .desc-unified {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 20px 0 32px;
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    overflow: hidden;
+  }
+  .desc-left {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+  .desc-section {
+    padding: 22px 26px;
+    flex: 1;
+  }
+  .desc-section + .desc-section {
+    border-top: 1px solid var(--border);
+  }
+  .desc-section h3 {
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .desc-section p {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.75;
+  }
+  .desc-right {
+    padding: 22px 26px;
+    display: flex;
+    flex-direction: column;
+  }
+  .desc-right h3 {
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 10px;
+    margin-right: 7px;
+    vertical-align: middle;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── File loader ── */
+  .loader-zone {
+    display: block;
+    position: relative;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .loader-zone:hover, .loader-zone.drag-over {
+    border-color: var(--gold);
+    background: rgba(212,168,90,0.04);
+  }
+  .loader-zone svg { margin-bottom: 12px; opacity: 0.35; }
+  .loader-zone p { font-size: 13px; font-weight: 300; color: var(--text-dim); }
+  .loader-zone p span { color: var(--gold); text-decoration: underline; cursor: pointer; }
+  .loader-zone.has-file p { color: var(--text); }
+
+  /* ── Section labels ── */
+  .section-label {
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Canvas wrapper ── */
+  .canvas-wrap {
+    width: 100%;
+    position: relative;
+    margin-bottom: 24px;
+    background: #000;
+    cursor: crosshair;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+
+  /* ── Sliders ── */
+  .sliders {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .slider-group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+  }
+  .slider-group label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+  .slider-group label .line-name {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 15px;
+  }
+  .slider-group label .line-px {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    outline: none;
+    border-radius: 999px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    background: var(--bg);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.06);
+  }
+  #sl-ha { color: var(--accent-ha); }
+  #sl-d  { color: var(--accent-d);  }
+  #sl-hb { color: var(--accent-hb); }
+
+  /* ── Fit status ── */
+  .fit-status {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 24px;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 36px;
+    flex-wrap: wrap;
+  }
+  .fit-status .stat { display: flex; flex-direction: column; gap: 3px; }
+  .fit-status .stat-label {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .fit-status .stat-val {
+    color: var(--text-bright);
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  .fit-status .stat-formula-wrap { flex: 1; min-width: 0; }
+  .fit-status .stat-formula {
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .render-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    border-radius: var(--radius-sm);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    margin-bottom: 32px;
+  }
+  .render-btn:hover {
+    background: var(--gold);
+    color: var(--bg);
+    box-shadow: 0 0 24px rgba(212,168,90,0.18);
+  }
+  .render-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* ── Result ── */
+  .result-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-wrap canvas { display: block; width: 100%; height: auto; }
+  .download-btn {
+    position: absolute;
+    top: 12px; right: 12px;
+    padding: 8px 18px;
+    background: rgba(10,11,14,0.88);
+    border: 1px solid var(--gold);
+    border-radius: var(--radius-sm);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: none;
+    backdrop-filter: blur(6px);
+  }
+  .download-btn:hover { background: var(--gold); color: var(--bg); }
+
+  /* ── Method selector ── */
+  .method-opt {
+    flex: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: stretch;
+  }
+  .method-opt input[type=radio] { display: none; }
+  .method-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .method-opt input:checked + .method-card {
+    border-color: var(--gold);
+    background: rgba(212,168,90,0.06);
+  }
+  .method-opt:hover .method-card { border-color: #363a46; }
+  .method-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-bright);
+  }
+  .method-opt input:checked ~ .method-card .method-title { color: var(--gold); }
+  .method-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  /* ── Crop step ── */
+  .crop-layout {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: start;
+  }
+  .crop-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .crop-main {
+    display: flex;
+    flex-direction: column;
+  }
+  .crop-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+  }
+  .crop-panel h3 {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+  .rot-step-btns { display: flex; gap: 8px; margin-bottom: 16px; }
+  .rot-btn {
+    flex: 1;
+    padding: 11px 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .rot-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .crop-sl-group { margin-bottom: 14px; }
+  .crop-sl-group:last-child { margin-bottom: 0; }
+  .crop-sl-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-dim);
+    margin-bottom: 9px;
+  }
+  .crop-sl-group label .val { color: var(--text-bright); font-size: 14px; }
+  .crop-grid4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 20px;
+  }
+  .crop-canvas-wrap {
+    width: 100%;
+    position: relative;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 12px;
+    cursor: crosshair;
+  }
+  .crop-canvas-wrap canvas { display: block; width: 100%; height: auto; }
+
+  /* Prevent scroll-while-dragging on canvases */
+  .canvas-wrap canvas, .crop-canvas-wrap canvas { touch-action: none; }
+
+  /* ── Hidden ── */
+  .hidden { display: none !important; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+  /* ══════════════════════════════════════════════════════════
+     RESPONSIVE  —  iPad 11" landscape  ≤ 1200px
+  ══════════════════════════════════════════════════════════ */
+  @media (max-width: 1200px) {
+    main { padding: 0 28px 48px; }
+    .crop-layout { grid-template-columns: 340px 1fr; }
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     RESPONSIVE  —  iPad 11" portrait  ≤ 900px
+  ══════════════════════════════════════════════════════════ */
+  @media (max-width: 900px) {
+    header { padding: 24px 24px 20px; }
+    .header-title h1 { font-size: 26px; }
+    main { padding: 0 20px 40px; }
+
+    /* Unified description: stack left/right */
+    .desc-unified { grid-template-columns: 1fr; }
+    .desc-left { border-right: none; border-bottom: 1px solid var(--border); }
+
+    /* Fraunhofer katalog: 2 columns on tablet — only affects layout when visible */
+    #katalog-3pt[style*="grid"], #katalog-2pt[style*="grid"] {
+      grid-template-columns: 1fr 1fr !important;
+      grid-template-rows: repeat(6, auto) !important;
+    }
+
+    /* Crop layout: sidebar stacks above canvas */
+    .crop-layout {
+      grid-template-columns: 1fr;
+    }
+    .crop-sidebar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* Calibration sliders: 2 columns */
+    .sliders { grid-template-columns: 1fr 1fr; }
+
+    /* Fit-status formula: allow wrap */
+    .fit-status { gap: 20px; }
+    .fit-status .stat-formula { font-size: 15px; white-space: normal; }
+
+    /* Method selector: comfortable stacking on tablet stays as flex */
+    .anchor-row { padding: 14px 20px; gap: 16px; }
+    .anchor-hint-text { font-size: 15px; }
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     RESPONSIVE  —  iPhone  ≤ 500px
+  ══════════════════════════════════════════════════════════ */
+  @media (max-width: 500px) {
+    header { padding: 18px 16px 16px; }
+    .header-title h1 { font-size: 20px; line-height: 1.25; }
+    .header-title p { font-size: 11px; margin-top: 5px; }
+
+    main { padding: 0 12px 32px; }
+
+    /* Method selector: vertical stack */
+    .method-opts-row { flex-direction: column !important; }
+    .desc-block.method-selector { padding: 18px 16px; }
+
+    /* Anchor hints */
+    .anchor-hints { margin: 16px 0 0; }
+    .anchor-row { flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px 16px; }
+    .anchor-hint-text { font-size: 14px; }
+
+    /* Description unified: single column, Katalog 1 col */
+    .desc-section { padding: 16px; }
+    .desc-section p, .desc-right p { font-size: 15px; }
+    .desc-right { padding: 16px; }
+    #katalog-3pt[style*="grid"], #katalog-2pt[style*="grid"] {
+      grid-template-columns: 1fr 1fr !important;
+      grid-template-rows: repeat(6, auto) !important;
+      font-size: 13px !important;
+    }
+
+    /* Crop layout: fully stacked */
+    .crop-layout { gap: 12px; }
+    .crop-sidebar { grid-template-columns: 1fr; }
+    .crop-panel { padding: 14px 14px; }
+
+    /* Bigger touch targets for range thumbs */
+    input[type=range] { height: 4px; }
+    input[type=range]::-webkit-slider-thumb {
+      width: 28px; height: 28px;
+      border-width: 2.5px;
+    }
+
+    /* Calibration sliders: single column */
+    .sliders { grid-template-columns: 1fr; }
+    .slider-group { padding: 14px 16px; }
+    .slider-group label .line-name { font-size: 14px; }
+    .slider-group label .line-px { font-size: 12px; }
+
+    /* Fit status: stack vertically */
+    .fit-status { flex-direction: column; gap: 12px; padding: 14px 16px; }
+    .fit-status .stat-formula { font-size: 14px; white-space: normal; }
+    .fit-status .stat-val { font-size: 14px; }
+
+    /* Render / confirm buttons */
+    .render-btn { font-size: 12px; padding: 14px 12px; letter-spacing: 0.06em; }
+
+    /* Download button */
+    .download-btn { font-size: 9px; padding: 7px 12px; top: 8px; right: 8px; }
+
+    /* Section labels */
+    .section-label { font-size: 11px; }
+  }
+
+  /* ── Touch-friendly: bigger crop handles on touch devices ── */
+  @media (hover: none) {
+    input[type=range]::-webkit-slider-thumb {
+      width: 26px; height: 26px;
+    }
+    .rot-btn { padding: 14px 0; }
+    .render-btn { padding: 18px; }
+  }</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <h1>Sonnenspektrum · <em>Fraunhofer</em>-Absorptionslinien</h1>
+    <p>Interaktive Wellenlängenkalibrierung</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- Anchor line hints -->
+  <!-- Kalibriermethode selector -->
+  <div class="desc-block method-selector" style="margin:28px 0 0; border-radius:var(--radius); border:1px solid var(--border); background:var(--panel); padding:24px 28px;">
+    <h3>Kalibriermethode</h3>
+    <div class="method-opts-row" style="display:flex; gap:12px; margin-top:14px;">
+      <label class="method-opt" id="opt-2pt">
+        <input type="radio" name="method" value="2pt" checked>
+        <div class="method-card">
+          <span class="method-title">2-Punkt Interpolation</span>
+          <span class="method-desc">Lineare Interpolation zwischen D₂(Na) und F(Hβ)</span>
+        </div>
+      </label>
+      <label class="method-opt" id="opt-3pt">
+        <input type="radio" name="method" value="3pt">
+        <div class="method-card">
+          <span class="method-title">3-Punkt Fit</span>
+          <span class="method-desc">Kleinste-Quadrate-Fit durch C(Hα), D₂(Na) und F(Hβ)</span>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- Anchor line hints (mode-dependent rows) -->
+  <div class="anchor-hints">
+    <div style="padding: 16px 28px 14px; border-bottom: 1px solid var(--border);">
+      <p style="font-family:'DM Sans',sans-serif; font-size:17px; font-weight:400; color:var(--text); line-height:1.5;">Die folgenden Linien müssen im Spektrum erkennbar sein um die Kalibrierung durchzuführen.</p>
+    </div>
+    <div class="anchor-row" id="hint-ha">
+      <span class="badge badge-ha">C(Hα/656.3nm)</span>
+      <span class="anchor-hint-text">Tiefes Rot am äußersten sichtbaren Ende des Spektrums — suche die markante dunkle Linie kurz vor dem Abfall ins Unsichtbare</span>
+    </div>
+    <div class="anchor-row">
+      <span class="badge badge-d">D₂(Na/589.0nm)</span>
+      <span class="anchor-hint-text">Warmgelb-Orange, nahe dem Helligkeitsmaximum des Spektrums — das auffälligste dunkle Doppel in diesem Bereich</span>
+    </div>
+    <div class="anchor-row">
+      <span class="badge badge-hb">F(Hβ/486.1nm)</span>
+      <span class="anchor-hint-text">Blau-Cyan, deutlich jenseits der Grünzone — das stärkste dunkle Band auf der blauen Seite vor dem Abfall ins Violett</span>
+    </div>
+  </div>
+
+  <div class="desc-unified">
+    <!-- Left: Methode + Ablauf stacked -->
+    <div class="desc-left">
+      <div class="desc-section">
+        <h3>Methode</h3>
+        <p id="desc-method-3pt">Ein linearer Fit λ(x) = a·x + b wird durch drei bekannte Fraunhofer-Absorptionslinien bestimmt. Die Ankerpunkte werden manuell über Schieberegler im Helligkeitsprofil verortet.</p>
+        <p id="desc-method-2pt" style="display:none">Eine lineare Interpolation λ(x) = a·x + b wird durch zwei bekannte Fraunhofer-Linien exakt bestimmt. D₂(Na) und F(Hβ) werden als Ankerpunkte manuell gesetzt.</p>
+      </div>
+      <div class="desc-section">
+        <h3>Ablauf</h3>
+        <p id="desc-ablauf-3pt">
+          <span class="step-num">1</span>Spektrumsbild laden<br>
+          <span class="step-num">2</span>Bild ausrichten &amp; zuschneiden<br>
+          <span class="step-num">3</span>Drei Linien mit Schiebereglern setzen<br>
+          <span class="step-num">4</span>Annotiertes Bild rendern &amp; herunterladen
+        </p>
+        <p id="desc-ablauf-2pt" style="display:none">
+          <span class="step-num">1</span>Spektrumsbild laden<br>
+          <span class="step-num">2</span>Bild ausrichten &amp; zuschneiden<br>
+          <span class="step-num">3</span>Zwei Linien mit Schiebereglern setzen<br>
+          <span class="step-num">4</span>Annotiertes Bild rendern &amp; herunterladen
+        </p>
+      </div>
+    </div>
+    <!-- Right: Fraunhofer-Katalog -->
+    <div class="desc-right">
+      <h3>Fraunhofer-Katalog</h3>
+      <p style="font-size:15px; font-family:'DM Sans',sans-serif; font-weight:300; line-height:1.75; color:var(--text); margin-bottom:18px;">Die <span style="font-weight:700; color:var(--text-bright)">hervorgehobenen Fraunhofer-Linien</span> werden für die Kalibrierung verwendet. Die restlichen können zur Plausibilisierung herangezogen werden.</p>
+      <div id="katalog-3pt" style="display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:repeat(4,auto); grid-auto-flow:column; gap:0 8px; line-height:2.1; font-family:'DM Mono',monospace; font-size:14px;">
+        <span>B(O₂/686.7nm)</span>
+        <span style="color:var(--accent-ha); font-weight:700">C(Hα/656.3nm)</span>
+        <span>D₁(Na/589.6nm)</span>
+        <span style="color:var(--accent-d); font-weight:700">D₂(Na/589.0nm)</span>
+        <span>E₂(Fe/527.0nm)</span>
+        <span>b₁(Mg/518.4nm)</span>
+        <span style="color:var(--accent-hb); font-weight:700">F(Hβ/486.1nm)</span>
+        <span>G'(Hγ/434.0nm)</span>
+        <span>G(Fe+Ca/430.8nm)</span>
+        <span>H(Ca⁺/396.8nm)</span>
+        <span>K(Ca⁺/393.4nm)</span>
+      </div>
+      <div id="katalog-2pt" style="display:none; grid-template-columns:1fr 1fr 1fr; grid-template-rows:repeat(4,auto); grid-auto-flow:column; gap:0 8px; line-height:2.1; font-family:'DM Mono',monospace; font-size:14px;">
+        <span>B(O₂/686.7nm)</span>
+        <span>C(Hα/656.3nm)</span>
+        <span>D₁(Na/589.6nm)</span>
+        <span style="color:var(--accent-d); font-weight:700">D₂(Na/589.0nm)</span>
+        <span>E₂(Fe/527.0nm)</span>
+        <span>b₁(Mg/518.4nm)</span>
+        <span style="color:var(--accent-hb); font-weight:700">F(Hβ/486.1nm)</span>
+        <span>G'(Hγ/434.0nm)</span>
+        <span>G(Fe+Ca/430.8nm)</span>
+        <span>H(Ca⁺/396.8nm)</span>
+        <span>K(Ca⁺/393.4nm)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- File loader -->
+  <div class="section-label">Spektrum laden</div>
+  <div class="loader-zone" id="dropzone">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8cad0" stroke-width="1.5" style="margin-bottom:12px;opacity:0.35;pointer-events:none">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+    </svg>
+    <p id="dropText" style="pointer-events:none">Bild hierher ziehen oder <span>Datei auswählen</span></p>
+    <input type="file" id="fileInput" accept="image/*,.heic,.heif"
+           style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;">
+  </div>
+
+  <!-- ── Crop & Rotate Step ── -->
+  <div id="cropSection" class="hidden">
+    <div class="section-label">Bild ausrichten &amp; zuschneiden</div>
+    <div class="crop-layout">
+      <!-- Left sidebar: rotation + crop controls -->
+      <div class="crop-sidebar">
+        <div class="crop-panel">
+          <h3>Rotation</h3>
+          <div class="rot-step-btns">
+            <button class="rot-btn" id="rotCCW" title="90° gegen den Uhrzeigersinn">↺ &minus;90°</button>
+            <button class="rot-btn" id="rotCW"  title="90° im Uhrzeigersinn">↻ +90°</button>
+          </div>
+          <div class="crop-sl-group">
+            <label><span>Feinkorrektur</span><span class="val" id="rotFineVal">0.0°</span></label>
+            <input type="range" id="rotFineSlider" min="-10" max="10" step="0.1" value="0">
+          </div>
+        </div>
+        <div class="crop-panel">
+          <h3>Zuschneiden</h3>
+          <div class="crop-grid4">
+            <div class="crop-sl-group">
+              <label><span>Oben</span><span class="val" id="cropTval">0 px</span></label>
+              <input type="range" id="cropT" min="0" max="49" value="0">
+            </div>
+            <div class="crop-sl-group">
+              <label><span>Unten</span><span class="val" id="cropBval">0 px</span></label>
+              <input type="range" id="cropB" min="0" max="49" value="0">
+            </div>
+            <div class="crop-sl-group">
+              <label><span>Links</span><span class="val" id="cropLval">0 px</span></label>
+              <input type="range" id="cropL" min="0" max="49" value="0">
+            </div>
+            <div class="crop-sl-group">
+              <label><span>Rechts</span><span class="val" id="cropRval">0 px</span></label>
+              <input type="range" id="cropR" min="0" max="49" value="0">
+            </div>
+          </div>
+          <p style="margin-top:12px; font-size:12px; color:var(--text-dim); font-family:'DM Sans',sans-serif; line-height:1.5;">Handles im Vorschaubild direkt ziehen oder Schieberegler verwenden.</p>
+        </div>
+      </div>
+      <!-- Right: preview canvas + confirm button -->
+      <div class="crop-main">
+        <div class="crop-canvas-wrap" id="cropCanvasWrap">
+          <canvas id="cropCanvas"></canvas>
+        </div>
+        <button class="render-btn" id="cropConfirmBtn" style="margin-bottom:0">
+          ↳ Ausschnitt übernehmen &amp; zur Kalibrierung →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay canvas -->
+  <div id="interactiveSection" class="hidden">
+    <div class="section-label">Helligkeitsprofil &amp; Ankerpunkte</div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="overlayCanvas"></canvas>
+    </div>
+
+    <!-- Sliders -->
+    <div class="sliders" id="slidersWrap">
+      <div class="slider-group" id="slider-ha">
+        <label>
+          <span class="line-name" style="color:var(--accent-ha)">C(Hα/656.3nm)</span>
+          <span class="line-px" id="px-ha">x = –</span>
+        </label>
+        <input type="range" id="sl-ha" min="0" max="1000" value="250">
+      </div>
+      <div class="slider-group">
+        <label>
+          <span class="line-name" style="color:var(--accent-d)">D₂(Na/589.0nm)</span>
+          <span class="line-px" id="px-d">x = –</span>
+        </label>
+        <input type="range" id="sl-d" min="0" max="1000" value="500">
+      </div>
+      <div class="slider-group">
+        <label>
+          <span class="line-name" style="color:var(--accent-hb)">F(Hβ/486.1nm)</span>
+          <span class="line-px" id="px-hb">x = –</span>
+        </label>
+        <input type="range" id="sl-hb" min="0" max="1000" value="750">
+      </div>
+    </div>
+
+    <!-- Fit stats -->
+    <div class="fit-status" id="fitStatus">
+      <div class="stat stat-formula-wrap">
+        <span class="stat-label" id="stat-formula-label">Interpolationsfunktion</span>
+        <span class="stat-val stat-formula" id="stat-formula">–</span>
+      </div>
+      <div class="stat"><span class="stat-label">Maßstab</span><span class="stat-val" id="stat-scale">–</span></div>
+      <div class="stat" id="stat-res-wrap"><span class="stat-label" id="stat-res-label">Max. Residuum</span><span class="stat-val" id="stat-res">–</span></div>
+    </div>
+
+    <button class="render-btn" id="renderBtn">
+      ↳ Annotiertes Spektrum rendern &amp; speichern
+    </button>
+
+    <div class="section-label" id="resultLabel" style="display:none">Annotiertes Spektrum</div>
+    <div class="result-wrap" id="resultWrap" style="display:none">
+      <canvas id="resultCanvas"></canvas>
+      <button class="download-btn" id="downloadBtn">↓ PNG herunterladen</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────────────────────────────────────
+let specImg = null;
+let rawImg  = null;   // raw image before crop/rotate
+let cropRot90  = 0;   // 0/1/2/3 × 90° CW
+let cropFineDeg = 0;  // fine rotation degrees
+let imgW = 0, imgH = 0;
+let profile = null;   // Float64Array of length imgW
+let calib = { a: -0.1, b: 700 };
+let calibMode = '2pt'; // '3pt' or '2pt'
+
+const WL_HA = 656.3, WL_D = 589.0, WL_HB = 486.1;
+
+const ALL_LINES = [
+  { name: 'B',   wl: 686.7, elem: 'O₂',    kind: 'atm'   },
+  { name: 'C',   wl: 656.3, elem: 'Hα',    kind: 'solar' },
+  { name: 'D₁',  wl: 589.6, elem: 'Na',    kind: 'solar' },
+  { name: 'D₂',  wl: 589.0, elem: 'Na',    kind: 'solar' },
+  { name: 'E₂',  wl: 527.0, elem: 'Fe',    kind: 'solar' },
+  { name: 'b₁',  wl: 518.4, elem: 'Mg',    kind: 'solar' },
+  { name: 'F',   wl: 486.1, elem: 'Hβ',    kind: 'solar' },
+  { name: "G'",  wl: 434.0, elem: 'Hγ',    kind: 'solar' },
+  { name: 'G',   wl: 430.8, elem: 'Fe+Ca', kind: 'solar' },
+  { name: 'H',   wl: 396.8, elem: 'Ca⁺',   kind: 'solar' },
+  { name: 'K',   wl: 393.4, elem: 'Ca⁺',   kind: 'solar' },
+];
+const ANCHOR_WLS = new Set([WL_HA, WL_D, WL_HB]);
+
+const COLORS = {
+  ha: '#ff6666', d: '#ffaa44', hb: '#66ccff',
+  solar: 'rgba(255,255,255,0.8)', atm: 'rgba(100,210,255,0.8)'
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DOM refs
+// ─────────────────────────────────────────────────────────────────────────────
+const fileInput   = document.getElementById('fileInput');
+const dropzone    = document.getElementById('dropzone');
+const dropText    = document.getElementById('dropText');
+const cropSection = document.getElementById('cropSection');
+const interSec    = document.getElementById('interactiveSection');
+const overlayC    = document.getElementById('overlayCanvas');
+const resultC     = document.getElementById('resultCanvas');
+const slHa        = document.getElementById('sl-ha');
+const slD         = document.getElementById('sl-d');
+const slHb        = document.getElementById('sl-hb');
+const pxHa        = document.getElementById('px-ha');
+const pxD         = document.getElementById('px-d');
+const pxHb        = document.getElementById('px-hb');
+const statFormula = document.getElementById('stat-formula');
+const statScale   = document.getElementById('stat-scale');
+const statRes     = document.getElementById('stat-res');
+const renderBtn   = document.getElementById('renderBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const resultWrap  = document.getElementById('resultWrap');
+const resultLabel = document.getElementById('resultLabel');
+const sliderHaWrap = document.getElementById('slider-ha');
+const hintHa       = document.getElementById('hint-ha');
+const slidersWrap  = document.getElementById('slidersWrap');
+
+// ─────────────────────────────────────────────────────────────────────────────
+// File loading
+// ─────────────────────────────────────────────────────────────────────────────
+function isHeic(file) {
+  return /\.(heic|heif)$/i.test(file.name) ||
+         file.type === 'image/heic' || file.type === 'image/heif';
+}
+
+function applyImageElement(img, name) {
+  rawImg = img;
+  dropText.textContent = `✓ ${name} (${img.naturalWidth} × ${img.naturalHeight} px)`;
+  dropzone.classList.add('has-file');
+  interSec.classList.add('hidden');
+  resultWrap.style.display = resultLabel.style.display = downloadBtn.style.display = 'none';
+  cropRot90 = 0; cropFineDeg = 0;
+  document.getElementById('rotFineSlider').value = 0;
+  document.getElementById('rotFineVal').textContent = '0.0°';
+  ['cropT','cropB','cropL','cropR'].forEach(id => { document.getElementById(id).value = 0; });
+  cropSection.classList.remove('hidden');
+  updateCropValLabels();
+  cropSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => drawCropCanvas(), 50);
+}
+
+function loadImageFile(file) {
+  if (!file) return;
+  dropText.textContent = 'Lade …';
+
+  function processBlob(blob) {
+    const fr = new FileReader();
+    fr.onload = e => {
+      const img = new Image();
+      img.onload = () => applyImageElement(img, file.name);
+      img.onerror = () => { dropText.textContent = 'Fehler: Bild konnte nicht dekodiert werden.'; };
+      img.src = e.target.result;
+    };
+    fr.onerror = () => { dropText.textContent = 'FileReader-Fehler.'; };
+    fr.readAsDataURL(blob);
+  }
+
+  if (isHeic(file)) {
+    if (typeof heic2any === 'undefined') { dropText.textContent = 'HEIC-Konverter nicht geladen.'; return; }
+    dropText.textContent = 'Konvertiere HEIC…';
+    heic2any({ blob: file, toType: 'image/jpeg' })
+      .then(processBlob)
+      .catch(err => { dropText.textContent = 'HEIC-Fehler: ' + (err.message || err); });
+  } else {
+    processBlob(file);
+  }
+}
+
+fileInput.addEventListener('change', function() {
+  const file = this.files && this.files[0];
+  if (file) loadImageFile(file);
+});
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) loadImageFile(e.dataTransfer.files[0]);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Profile extraction
+// ─────────────────────────────────────────────────────────────────────────────
+function computeProfile() {
+  // Use a regular canvas instead of OffscreenCanvas for iOS Safari compatibility
+  const offscreen = document.createElement('canvas');
+  offscreen.width  = imgW;
+  offscreen.height = imgH;
+  const ctx = offscreen.getContext('2d');
+  ctx.drawImage(specImg, 0, 0);
+  const bandH = Math.min(100, Math.floor(imgH * 0.1));
+  const midY  = Math.floor(imgH / 2);
+  const data  = ctx.getImageData(0, midY - bandH, imgW, bandH * 2).data;
+  const rows  = bandH * 2;
+
+  profile = new Float64Array(imgW);
+  for (let x = 0; x < imgW; x++) {
+    let sum = 0;
+    for (let y = 0; y < rows; y++) {
+      const i = (y * imgW + x) * 4;
+      sum += data[i] + data[i+1] + data[i+2];
+    }
+    profile[x] = sum / rows;
+  }
+  // Gaussian smooth σ=3
+  const sigma = 3, ksize = 9;
+  const kernel = [];
+  let ksum = 0;
+  for (let i = -ksize; i <= ksize; i++) {
+    const v = Math.exp(-i*i / (2*sigma*sigma));
+    kernel.push(v); ksum += v;
+  }
+  const smoothed = new Float64Array(imgW);
+  for (let x = 0; x < imgW; x++) {
+    let acc = 0;
+    for (let k = -ksize; k <= ksize; k++) {
+      const xi = Math.max(0, Math.min(imgW-1, x + k));
+      acc += profile[xi] * kernel[k + ksize];
+    }
+    smoothed[x] = acc / ksum;
+  }
+  profile = smoothed;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Crop & Rotate step
+// ─────────────────────────────────────────────────────────────────────────────
+const cropCanvas    = document.getElementById('cropCanvas');
+const cropCanvasWrap = document.getElementById('cropCanvasWrap');
+const cropConfirmBtn = document.getElementById('cropConfirmBtn');
+const rotFineSlider  = document.getElementById('rotFineSlider');
+
+function getCropFracs() {
+  const t = +document.getElementById('cropT').value / 100;
+  const b = +document.getElementById('cropB').value / 100;
+  const l = +document.getElementById('cropL').value / 100;
+  const r = +document.getElementById('cropR').value / 100;
+  return { l, r: 1-r, t, b: 1-b };
+}
+
+function updateCropValLabels() {
+  if (!rawImg) return;
+  const isOdd = (cropRot90 % 2) !== 0;
+  const effW = isOdd ? rawImg.naturalHeight : rawImg.naturalWidth;
+  const effH = isOdd ? rawImg.naturalWidth  : rawImg.naturalHeight;
+  const fRad = cropFineDeg * Math.PI / 180;
+  const rotW = Math.abs(effW*Math.cos(fRad)) + Math.abs(effH*Math.sin(fRad));
+  const rotH = Math.abs(effH*Math.cos(fRad)) + Math.abs(effW*Math.sin(fRad));
+  const tV = +document.getElementById('cropT').value;
+  const bV = +document.getElementById('cropB').value;
+  const lV = +document.getElementById('cropL').value;
+  const rV = +document.getElementById('cropR').value;
+  document.getElementById('cropTval').textContent = Math.round(tV/100*rotH) + ' px';
+  document.getElementById('cropBval').textContent = Math.round(bV/100*rotH) + ' px';
+  document.getElementById('cropLval').textContent = Math.round(lV/100*rotW) + ' px';
+  document.getElementById('cropRval').textContent = Math.round(rV/100*rotW) + ' px';
+}
+
+function drawCropCanvas() {
+  if (!rawImg) return;
+  const dpr = window.devicePixelRatio || 1;
+  // Reset explicit size so the container can report its natural width
+  cropCanvas.style.width = '';
+  cropCanvas.style.height = '';
+  const dispW = cropCanvasWrap.clientWidth || window.innerWidth - 32;
+
+  const srcW = rawImg.naturalWidth, srcH = rawImg.naturalHeight;
+  const isOdd = (cropRot90 % 2) !== 0;
+  const eff90W = isOdd ? srcH : srcW;
+  const eff90H = isOdd ? srcW : srcH;
+  const fRad = cropFineDeg * Math.PI / 180;
+  const rotW = Math.abs(eff90W*Math.cos(fRad)) + Math.abs(eff90H*Math.sin(fRad));
+  const rotH = Math.abs(eff90H*Math.cos(fRad)) + Math.abs(eff90W*Math.sin(fRad));
+
+  const scale  = dispW / rotW;
+  const dispH  = rotH * scale;
+
+  cropCanvas.width  = Math.round(dispW * dpr);
+  cropCanvas.height = Math.round(dispH * dpr);
+  cropCanvas.style.width  = dispW + 'px';
+  cropCanvas.style.height = dispH + 'px';
+
+  const ctx = cropCanvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Draw image with full rotation
+  ctx.save();
+  ctx.translate(dispW/2, dispH/2);
+  ctx.rotate(cropRot90 * Math.PI/2 + fRad);
+  ctx.drawImage(rawImg, -srcW*scale/2, -srcH*scale/2, srcW*scale, srcH*scale);
+  ctx.restore();
+
+  // Crop overlay
+  const { l, r, t, b } = getCropFracs();
+  const lx = l * dispW, rx = r * dispW, ty = t * dispH, by = b * dispH;
+
+  ctx.fillStyle = 'rgba(0,0,0,0.58)';
+  ctx.fillRect(0,  0,  lx,       dispH);
+  ctx.fillRect(rx, 0,  dispW-rx, dispH);
+  ctx.fillRect(lx, 0,  rx-lx,   ty);
+  ctx.fillRect(lx, by, rx-lx,   dispH-by);
+
+  // Gold crop rect
+  ctx.strokeStyle = '#d4a85a';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(lx+1, ty+1, rx-lx-2, by-ty-2);
+
+  // Dense grid inside crop rect (16 cols × 10 rows)
+  const GCOLS = 16, GROWS = 10;
+  for (let i = 1; i < GCOLS; i++) {
+    const gx = lx + (rx - lx) * i / GCOLS;
+    const isMajor = (i % 4 === 0);
+    ctx.strokeStyle = isMajor ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = isMajor ? 1.5 : 0.75;
+    ctx.beginPath(); ctx.moveTo(gx, ty); ctx.lineTo(gx, by); ctx.stroke();
+  }
+  for (let i = 1; i < GROWS; i++) {
+    const gy = ty + (by - ty) * i / GROWS;
+    const isMajor = (i % 2 === 0);
+    ctx.strokeStyle = isMajor ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = isMajor ? 1.5 : 0.75;
+    ctx.beginPath(); ctx.moveTo(lx, gy); ctx.lineTo(rx, gy); ctx.stroke();
+  }
+
+  // Handles
+  const mx = (lx+rx)/2, my = (ty+by)/2;
+  const handles = [
+    [lx,ty],[mx,ty],[rx,ty],
+    [lx,my],        [rx,my],
+    [lx,by],[mx,by],[rx,by]
+  ];
+  handles.forEach(([hx,hy]) => {
+    ctx.fillStyle = '#d4a85a';
+    ctx.strokeStyle = '#0a0b0e';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.rect(hx-6, hy-6, 12, 12);
+    ctx.fill();
+    ctx.stroke();
+  });
+
+  updateCropValLabels();
+}
+
+// Crop handle dragging
+(function() {
+  let dragging = null; // array of edges being dragged ['l'], ['r'], ['t'], ['b'], ['l','t'], …
+
+  function dispDims() {
+    return { dispW: +cropCanvas.style.width.replace('px',''), dispH: +cropCanvas.style.height.replace('px','') };
+  }
+
+  function evXY(e) {
+    const rect = cropCanvas.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return { mx: cx - rect.left, my: cy - rect.top };
+  }
+
+  function hitTest(mx, my) {
+    const { dispW, dispH } = dispDims();
+    const { l, r, t, b } = getCropFracs();
+    const lx = l*dispW, rx = r*dispW, ty = t*dispH, by = b*dispH;
+    const THR = 14;
+    const edges = [];
+    if (Math.abs(mx-lx) < THR && my >= ty-THR && my <= by+THR) edges.push('l');
+    if (Math.abs(mx-rx) < THR && my >= ty-THR && my <= by+THR) edges.push('r');
+    if (Math.abs(my-ty) < THR && mx >= lx-THR && mx <= rx+THR) edges.push('t');
+    if (Math.abs(my-by) < THR && mx >= lx-THR && mx <= rx+THR) edges.push('b');
+    return edges.length ? edges : null;
+  }
+
+  function edgeCursor(edges) {
+    if (!edges) return 'crosshair';
+    const h = edges.includes('l') || edges.includes('r');
+    const v = edges.includes('t') || edges.includes('b');
+    if (h && v) return 'nwse-resize';
+    if (h) return 'ew-resize';
+    return 'ns-resize';
+  }
+
+  function applyDrag(mx, my) {
+    if (!dragging) return;
+    const { dispW, dispH } = dispDims();
+    const tSlider = document.getElementById('cropT');
+    const bSlider = document.getElementById('cropB');
+    const lSlider = document.getElementById('cropL');
+    const rSlider = document.getElementById('cropR');
+    const { l, r, t, b } = getCropFracs();
+
+    if (dragging.includes('l')) {
+      const newL = Math.max(0, Math.min(r - 0.02, mx / dispW));
+      lSlider.value = Math.round(newL * 100);
+    }
+    if (dragging.includes('r')) {
+      const newR = Math.max(l + 0.02, Math.min(1, mx / dispW));
+      rSlider.value = Math.round((1 - newR) * 100);
+    }
+    if (dragging.includes('t')) {
+      const newT = Math.max(0, Math.min(b - 0.02, my / dispH));
+      tSlider.value = Math.round(newT * 100);
+    }
+    if (dragging.includes('b')) {
+      const newB = Math.max(t + 0.02, Math.min(1, my / dispH));
+      bSlider.value = Math.round((1 - newB) * 100);
+    }
+    drawCropCanvas();
+  }
+
+  cropCanvas.addEventListener('mousemove', e => {
+    if (!rawImg) return;
+    const { mx, my } = evXY(e);
+    if (dragging) { applyDrag(mx, my); return; }
+    cropCanvas.style.cursor = edgeCursor(hitTest(mx, my));
+  });
+
+  cropCanvas.addEventListener('mousedown', e => {
+    if (!rawImg) return;
+    const { mx, my } = evXY(e);
+    const h = hitTest(mx, my);
+    if (h) { dragging = h; e.preventDefault(); }
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const { mx, my } = evXY(e);
+    applyDrag(mx, my);
+    e.preventDefault();
+  });
+
+  window.addEventListener('mouseup', () => { dragging = null; });
+
+  cropCanvas.addEventListener('touchstart', e => {
+    if (!rawImg) return;
+    const { mx, my } = evXY(e);
+    const h = hitTest(mx, my);
+    if (h) { dragging = h; e.preventDefault(); }
+  }, { passive: false });
+
+  cropCanvas.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const { mx, my } = evXY(e);
+    applyDrag(mx, my);
+    e.preventDefault();
+  }, { passive: false });
+
+  cropCanvas.addEventListener('touchend', () => { dragging = null; });
+})();
+
+// Rotation buttons
+document.getElementById('rotCCW').addEventListener('click', () => {
+  cropRot90 = (cropRot90 + 3) % 4;
+  drawCropCanvas();
+});
+document.getElementById('rotCW').addEventListener('click', () => {
+  cropRot90 = (cropRot90 + 1) % 4;
+  drawCropCanvas();
+});
+
+// Fine rotation slider
+rotFineSlider.addEventListener('input', () => {
+  cropFineDeg = +rotFineSlider.value;
+  document.getElementById('rotFineVal').textContent = cropFineDeg.toFixed(1) + '°';
+  drawCropCanvas();
+});
+
+// Crop sliders
+['cropT','cropB','cropL','cropR'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => drawCropCanvas());
+});
+
+window.addEventListener('resize', () => { if (rawImg && !cropSection.classList.contains('hidden')) drawCropCanvas(); });
+
+// Confirm crop — bake rotation + crop into specImg
+cropConfirmBtn.addEventListener('click', async () => {
+  if (!rawImg) return;
+  cropConfirmBtn.textContent = '↻ Verarbeite …';
+  cropConfirmBtn.disabled = true;
+
+  await new Promise(r => setTimeout(r, 20)); // allow repaint
+
+  try {
+    const srcW = rawImg.naturalWidth, srcH = rawImg.naturalHeight;
+    const isOdd = (cropRot90 % 2) !== 0;
+    const eff90W = isOdd ? srcH : srcW;
+    const eff90H = isOdd ? srcW : srcH;
+
+    // Helper: regular canvas (iOS Safari compatible, no OffscreenCanvas needed)
+    function mkCanvas(w, h) {
+      const c = document.createElement('canvas');
+      c.width = Math.ceil(w); c.height = Math.ceil(h);
+      return c;
+    }
+
+    // Step 1: 90° rotation
+    const c1 = mkCanvas(eff90W, eff90H);
+    const x1 = c1.getContext('2d');
+    x1.save();
+    x1.translate(eff90W/2, eff90H/2);
+    x1.rotate(cropRot90 * Math.PI/2);
+    x1.drawImage(rawImg, -srcW/2, -srcH/2, srcW, srcH);
+    x1.restore();
+
+    // Step 2: fine rotation
+    const fRad = cropFineDeg * Math.PI / 180;
+    const rotW = Math.abs(eff90W*Math.cos(fRad)) + Math.abs(eff90H*Math.sin(fRad));
+    const rotH = Math.abs(eff90H*Math.cos(fRad)) + Math.abs(eff90W*Math.sin(fRad));
+    const c2 = mkCanvas(rotW, rotH);
+    const x2 = c2.getContext('2d');
+    x2.save();
+    x2.translate(rotW/2, rotH/2);
+    x2.rotate(fRad);
+    x2.drawImage(c1, -eff90W/2, -eff90H/2, eff90W, eff90H);
+    x2.restore();
+
+    // Step 3: crop
+    const { l, r, t, b } = getCropFracs();
+    const cropX = Math.round(l * rotW);
+    const cropY = Math.round(t * rotH);
+    const cropW = Math.max(1, Math.round((r-l) * rotW));
+    const cropH = Math.max(1, Math.round((b-t) * rotH));
+    const c3 = mkCanvas(cropW, cropH);
+    c3.getContext('2d').drawImage(c2, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+    // toDataURL works on all iOS versions; no convertToBlob needed
+    const dataUrl = c3.toDataURL('image/png');
+    const img = new Image();
+    img.onload = () => {
+      specImg = img;
+      imgW = img.naturalWidth;
+      imgH = img.naturalHeight;
+      computeProfile();
+      initSliders();
+      cropSection.classList.add('hidden');
+      interSec.classList.remove('hidden');
+      drawOverlay();
+      cropConfirmBtn.textContent = '↳ Ausschnitt übernehmen & zur Kalibrierung →';
+      cropConfirmBtn.disabled = false;
+    };
+    img.src = dataUrl;
+  } catch(err) {
+    cropConfirmBtn.textContent = 'Fehler: ' + err.message;
+    cropConfirmBtn.disabled = false;
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sliders init + events
+// ─────────────────────────────────────────────────────────────────────────────
+function initSliders() {
+  slHa.max = imgW - 1;
+  slD.max  = imgW - 1;
+  slHb.max = imgW - 1;
+  slHa.value = Math.round(imgW * 0.25);
+  slD.value  = Math.round(imgW * 0.50);
+  slHb.value = Math.round(imgW * 0.75);
+  updateFit();
+}
+
+[slHa, slD, slHb].forEach(sl => sl.addEventListener('input', () => { updateFit(); drawOverlay(); }));
+
+function getSliderVals() {
+  return { xa: +slHa.value, xd: +slD.value, xb: +slHb.value };
+}
+
+function polyfit3(x1,y1, x2,y2, x3,y3) {
+  // Solve  [x  1] * [a; b] = y  in least-squares sense for 3 points
+  const n=3, sx=x1+x2+x3, sx2=x1*x1+x2*x2+x3*x3;
+  const sy=y1+y2+y3, sxy=x1*y1+x2*y2+x3*y3;
+  const det = n*sx2 - sx*sx;
+  const a = (n*sxy - sx*sy) / det;
+  const b = (sy - a*sx) / n;
+  return { a, b };
+}
+
+function updateFit() {
+  const { xa, xd, xb } = getSliderVals();
+  let fit, maxRes;
+
+  if (calibMode === '2pt') {
+    // Exact 2-point interpolation through D2 and F
+    fit = { a: (WL_D - WL_HB) / (xd - xb), b: WL_D - (WL_D - WL_HB) / (xd - xb) * xd };
+    maxRes = 0; // exact — no residual
+    document.getElementById('stat-res-label').textContent = 'Residuum';
+    document.getElementById('stat-res-wrap').style.opacity = '0.35';
+  } else {
+    fit = polyfit3(xa, WL_HA, xd, WL_D, xb, WL_HB);
+    const res = [
+      Math.abs(fit.a*xa + fit.b - WL_HA),
+      Math.abs(fit.a*xd + fit.b - WL_D),
+      Math.abs(fit.a*xb + fit.b - WL_HB),
+    ];
+    maxRes = Math.max(...res);
+    document.getElementById('stat-res-label').textContent = 'Max. Residuum';
+    document.getElementById('stat-res-wrap').style.opacity = '1';
+  }
+
+  calib = fit;
+  // Format interpolation formula: λ(x) = a·x ± |b| nm
+  const aStr = fit.a.toFixed(6);
+  const bAbs = Math.abs(fit.b).toFixed(4);
+  const bSign = fit.b >= 0 ? ' + ' : ' − ';
+  statFormula.textContent = `λ(x) = ${aStr} · x${bSign}${bAbs} nm`;
+  statScale.textContent = Math.abs(fit.a).toFixed(5) + ' nm/px';
+  statRes.textContent   = calibMode === '2pt' ? 'exakt' : maxRes.toFixed(3) + ' nm';
+  pxHa.textContent = `x = ${xa}`;
+  pxD.textContent  = `x = ${xd}`;
+  pxHb.textContent = `x = ${xb}`;
+}
+
+function wlToX(wl) { return (wl - calib.b) / calib.a; }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Overlay canvas draw
+// ─────────────────────────────────────────────────────────────────────────────
+function drawOverlay() {
+  const dpr = window.devicePixelRatio || 1;
+  const dispW = overlayC.parentElement.clientWidth;
+  const dispH = Math.round(dispW * imgH / imgW);
+  overlayC.width  = dispW * dpr;
+  overlayC.height = dispH * dpr;
+  overlayC.style.width  = dispW + 'px';
+  overlayC.style.height = dispH + 'px';
+
+  const ctx = overlayC.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = dispW, H = dispH;
+
+  // Draw spectrum
+  ctx.drawImage(specImg, 0, 0, W, H);
+
+  const { xa, xd, xb } = getSliderVals();
+  const scaleX = W / imgW;
+  const scaleY = H / imgH;
+
+  // Compute profile y-coords in display space
+  const pmin = Math.min(...profile), pmax = Math.max(...profile);
+  const profY = x => { const norm = (profile[x] - pmin) / (pmax - pmin + 1e-9); return H * (5/6 - (2/3) * norm); };
+
+  // Draw profile
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.78)';
+  ctx.lineWidth = 1.5;
+  for (let x = 0; x < imgW; x++) {
+    const px = x * scaleX;
+    const py = profY(x) * scaleY;
+    x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  // Secondary Fraunhofer lines
+  const tickH = H / 7;
+  ALL_LINES.forEach(({ name, wl, elem, kind }) => {
+    if (ANCHOR_WLS.has(wl)) return;
+    const xp = wlToX(wl) * scaleX;
+    if (xp < 0 || xp > W) return;
+    const lc = kind === 'atm' ? 'rgba(100,210,255,0.55)' : 'rgba(255,255,255,0.55)';
+    ctx.strokeStyle = lc;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(xp, 0);          ctx.lineTo(xp, tickH);      ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(xp, H - tickH);   ctx.lineTo(xp, H);         ctx.stroke();
+    ctx.fillStyle = lc;
+    ctx.font = `bold 14px "DM Mono", monospace`;
+    ctx.fillText(`${name}(${elem}/${wl.toFixed(1)}nm)`, xp + W*0.002, H*0.04);
+  });
+
+  // Anchor lines
+  const anchorList = calibMode === '2pt'
+    ? [
+        { xp: xd * scaleX, name: 'D₂(Na/589.0nm)', col: COLORS.d  },
+        { xp: xb * scaleX, name: 'F(Hβ/486.1nm)',  col: COLORS.hb },
+      ]
+    : [
+        { xp: xa * scaleX, name: 'C(Hα/656.3nm)',  col: COLORS.ha },
+        { xp: xd * scaleX, name: 'D₂(Na/589.0nm)', col: COLORS.d  },
+        { xp: xb * scaleX, name: 'F(Hβ/486.1nm)',  col: COLORS.hb },
+      ];
+  anchorList.forEach(({ xp, name, col }) => {
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, H); ctx.stroke();
+    ctx.fillStyle = col;
+    ctx.font = `bold 16px "DM Mono", monospace`;
+    ctx.fillText(name, xp + W*0.003, H*0.05);
+    // dot on profile
+    const xi = Math.round(xp / scaleX);
+    if (xi >= 0 && xi < imgW) {
+      const py = profY(xi) * scaleY;
+      ctx.beginPath();
+      ctx.arc(xp, py, 7, 0, Math.PI*2);
+      ctx.fillStyle = col;
+      ctx.fill();
+    }
+  });
+}
+
+window.addEventListener('resize', () => { if (specImg) drawOverlay(); });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Calibration mode switching
+// ─────────────────────────────────────────────────────────────────────────────
+function applyMode(mode) {
+  calibMode = mode;
+
+  // Show/hide C hint row
+  hintHa.style.display = mode === '2pt' ? 'none' : '';
+
+  // Swap description text
+  document.getElementById('desc-method-3pt').style.display = mode === '3pt' ? '' : 'none';
+  document.getElementById('desc-method-2pt').style.display = mode === '2pt' ? '' : 'none';
+  document.getElementById('desc-ablauf-3pt').style.display = mode === '3pt' ? '' : 'none';
+  document.getElementById('desc-ablauf-2pt').style.display = mode === '2pt' ? '' : 'none';
+  document.getElementById('katalog-3pt').style.display    = mode === '3pt' ? 'grid' : 'none';
+  document.getElementById('katalog-2pt').style.display    = mode === '2pt' ? 'grid' : 'none';
+
+  // Show/hide C slider (only matters once image is loaded)
+  sliderHaWrap.style.display = mode === '2pt' ? 'none' : '';
+  slidersWrap.style.gridTemplateColumns = mode === '2pt' ? '1fr 1fr' : '1fr 1fr 1fr';
+
+  // Update ANCHOR_WLS for overlay drawing
+  if (mode === '2pt') {
+    ANCHOR_WLS.clear(); ANCHOR_WLS.add(WL_D); ANCHOR_WLS.add(WL_HB);
+  } else {
+    ANCHOR_WLS.clear(); ANCHOR_WLS.add(WL_HA); ANCHOR_WLS.add(WL_D); ANCHOR_WLS.add(WL_HB);
+  }
+
+  if (specImg) { updateFit(); drawOverlay(); }
+}
+
+// iOS Safari does not fire 'change' on hidden radio inputs.
+// Listen to 'click' on the wrapping label instead.
+document.querySelectorAll('label.method-opt').forEach(label => {
+  label.addEventListener('click', () => {
+    const radio = label.querySelector('input[type=radio]');
+    if (radio) applyMode(radio.value);
+  });
+});
+// Apply default mode on load
+applyMode(calibMode);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Render annotated spectrum
+// ─────────────────────────────────────────────────────────────────────────────
+renderBtn.addEventListener('click', renderAnnotated);
+
+function renderAnnotated() {
+  if (!specImg) return;
+  renderBtn.textContent = '↻ Rendere …';
+  renderBtn.disabled = true;
+  setTimeout(() => {
+    _doRender();
+    renderBtn.textContent = '↺ Neu rendern';
+    renderBtn.disabled = false;
+    resultWrap.style.display  = 'block';
+    resultLabel.style.display = 'flex';
+    downloadBtn.style.display = 'block';
+    resultWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 40);
+}
+
+function _doRender() {
+  // Layout constants (in original image pixels)
+  const W = imgW, H = imgH;
+  const FONT_BOLD  = 'bold 54px "DM Mono", monospace';
+  const FONT_SUB   = 'bold 54px "DM Mono", monospace';
+  const FONT_SCALE = '44px "DM Mono", monospace';
+  const FONT_TITLE = '300 74px "Playfair Display", serif';
+  const FONT_NOTE  = '400 52px "DM Mono", monospace';
+
+  // Scratch context for text measuring
+  const scratch = document.createElement('canvas').getContext('2d');
+  function tw(text, font) { scratch.font = font; return scratch.measureText(text).width; }
+  function th(font) {
+    scratch.font = font;
+    const m = scratch.measureText('M');
+    return (m.actualBoundingBoxAscent || 0) + (m.actualBoundingBoxDescent || 0) + 8;
+  }
+
+  const GAP = 18, ROW_GAP = 60, TITLE_MARGIN = 40, TITLE_TO_ROW = 60;
+  const BAR_OFFSET = 55, NOTE_MARGIN = 60, LINE_FRAC = 7, LINE_WIDTH = 5;
+
+  const label_h  = th(FONT_BOLD) + GAP + th(FONT_SUB) + 10;
+  const title_h  = th(FONT_TITLE);
+  const note_h   = th(FONT_NOTE);
+  const scale_lh = th(FONT_SCALE);
+
+  const ROW_A = TITLE_MARGIN + title_h + TITLE_MARGIN + TITLE_TO_ROW;
+  const ROW_B = ROW_A + label_h + ROW_GAP;
+  const ROW_C = ROW_B + label_h + ROW_GAP;
+  const ROW_D = ROW_C + label_h + ROW_GAP;
+  const top_pad = ROW_D + label_h + 30;
+  const bot_pad = BAR_OFFSET + 30 + scale_lh + 40 + note_h + 20 + note_h + 40;
+  const totalH  = H + top_pad + bot_pad;
+
+  resultC.width  = W;
+  resultC.height = totalH;
+  const ctx = resultC.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#0a0b0e';
+  ctx.fillRect(0, 0, W, totalH);
+
+  // Spectrum image
+  ctx.drawImage(specImg, 0, top_pad, W, H);
+
+  const spec_top = top_pad, spec_bot = top_pad + H;
+  const frac_h   = Math.floor(H / LINE_FRAC);
+  const line_top_end   = spec_top + frac_h;
+  const line_bot_start = spec_bot - frac_h;
+
+  // ── Title ──
+  const TITLE = 'Sonnenspektrum  ·  Fraunhofer-Absorptionslinien  ·  Wellenlängenkalibrierung';
+  ctx.font = FONT_TITLE;
+  ctx.fillStyle = '#bebab0';
+  ctx.textBaseline = 'top';
+  ctx.fillText(TITLE, W/2 - tw(TITLE, FONT_TITLE)/2, TITLE_MARGIN);
+
+  // ── Bottom-up row assignment: prefer rows closest to spectrum ──
+  const placed = [];
+  const ROWS_BTU = [ROW_D, ROW_C, ROW_B, ROW_A]; // closest first
+
+  function assignRow(name, x, lw_) {
+    const xl = x - lw_/2 - 8, xr = x + lw_/2 + 8;
+    for (const row of ROWS_BTU) {
+      if (!placed.some(p => p.row === row && xl < p.r && xr > p.l)) {
+        placed.push({ l: xl, r: xr, row });
+        return row;
+      }
+    }
+    placed.push({ l: xl, r: xr, row: ROW_A });
+    return ROW_A;
+  }
+
+  // Sort lines by x position — process right-to-left so the dense blue cluster
+  // gets first pick of the bottom row (shortest connectors)
+  const sortedLines = [...ALL_LINES].sort((a, b) => wlToX(b.wl) - wlToX(a.wl));
+
+  sortedLines.forEach(({ name, wl, elem, kind }) => {
+    const x = Math.round(wlToX(wl));
+    if (x < 0 || x >= W) return;
+    const lc = kind === 'solar' ? '#ffffff' : '#96e6ff';
+
+    ctx.strokeStyle = lc;
+    ctx.lineWidth = LINE_WIDTH;
+    ctx.beginPath(); ctx.moveTo(x, spec_top);      ctx.lineTo(x, line_top_end);   ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, line_bot_start); ctx.lineTo(x, spec_bot);       ctx.stroke();
+
+    const main = `${name}(${elem}/${wl.toFixed(1)}nm)`;
+    const mw = tw(main, FONT_BOLD);
+    const mh = th(FONT_BOLD);
+
+    const ly = assignRow(name, x, mw);
+    const lx = Math.max(4, Math.min(W - mw - 4, x - mw/2));
+
+    // Shadow
+    ctx.font = FONT_BOLD;
+    ctx.textBaseline = 'top';
+    [[-1,-1],[1,-1],[-1,1],[1,1],[0,-2],[0,2],[-2,0],[2,0]].forEach(([dx,dy]) => {
+      ctx.fillStyle = '#000000';
+      ctx.fillText(main, lx+dx, ly+dy);
+    });
+
+    ctx.fillStyle = '#ffffc8';
+    ctx.fillText(main, lx, ly);
+
+    // Connector
+    ctx.strokeStyle = lc;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, ly + mh + 4);
+    ctx.lineTo(x, spec_top);
+    ctx.stroke();
+  });
+
+  // ── Scale bar ──
+  const bar_y   = spec_bot + BAR_OFFSET;
+  const label_y = bar_y + 28;
+
+  ctx.strokeStyle = '#c8c8c8';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, bar_y); ctx.lineTo(W, bar_y); ctx.stroke();
+
+  for (let wl = 320; wl < 740; wl += 10) {
+    const x = Math.round(wlToX(wl));
+    if (x < 0 || x >= W) continue;
+    ctx.strokeStyle = '#787878';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y+14); ctx.stroke();
+  }
+  for (let wl = 300; wl < 740; wl += 50) {
+    const x = Math.round(wlToX(wl));
+    if (x < 0 || x >= W) continue;
+    ctx.strokeStyle = '#dcdcdc';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y+30); ctx.stroke();
+    const lbl = String(wl);
+    ctx.font = FONT_SCALE;
+    ctx.fillStyle = '#d2d2d2';
+    ctx.textBaseline = 'top';
+    ctx.fillText(lbl, x - tw(lbl, FONT_SCALE)/2, label_y);
+  }
+
+  // Yellow ticks at Fraunhofer positions
+  ALL_LINES.forEach(({ wl }) => {
+    const x = Math.round(wlToX(wl));
+    if (x < 0 || x >= W) return;
+    ctx.strokeStyle = '#ffe63c';
+    ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(x, bar_y-16); ctx.lineTo(x, bar_y); ctx.stroke();
+  });
+
+  ctx.font = FONT_SCALE;
+  ctx.fillStyle = '#b4b4b4';
+  ctx.textBaseline = 'top';
+  ctx.fillText('nm', W - 80, label_y);
+
+  // ── Bottom notes ──
+  const { xa, xd, xb } = getSliderVals();
+  const res = Math.max(
+    Math.abs(calib.a*xa + calib.b - WL_HA),
+    Math.abs(calib.a*xd + calib.b - WL_D),
+    Math.abs(calib.a*xb + calib.b - WL_HB)
+  );
+  const note1 = calibMode === '2pt'
+    ? `2-Punkt-Interpolation: D₂(Na/589,0nm) und F(Hβ/486,1nm)`
+    : `3-Punkt-Fit: C(Hα/656,3nm), D₂(Na/589,0nm), F(Hβ/486,1nm)`;
+  const note2 = `Maßstab: ${Math.abs(calib.a).toFixed(5)} nm/Px`;
+
+  const scale_bottom = label_y + scale_lh + 30;
+  const available = totalH - scale_bottom;
+  const spacing   = (available - note_h * 2) / 3;
+
+  ctx.font = FONT_NOTE;
+  ctx.fillStyle = '#828278';
+  ctx.textBaseline = 'top';
+  ctx.fillText(note1, NOTE_MARGIN, scale_bottom + spacing);
+  ctx.fillText(note2, NOTE_MARGIN, scale_bottom + spacing + note_h + spacing);
+}
+
+// ── Download ──
+downloadBtn.addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = 'sonnenspektrum_kalibriert.png';
+  link.href = resultC.toDataURL('image/png');
+  link.click();
+});
+
+// Drag anchor lines on overlay canvas
+(function() {
+  let dragging = null; // index: 0=ha, 1=d, 2=hb
+
+  function xPixelFromEvent(e) {
+    const rect = overlayC.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    return Math.round(Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) * imgW);
+  }
+
+  function nearestActiveAnchor(xPx) {
+    if (!specImg) return null;
+    const { xa, xd, xb } = getSliderVals();
+    const candidates = calibMode === '2pt'
+      ? [[1, xd], [2, xb]]
+      : [[0, xa], [1, xd], [2, xb]];
+    let best = null, bestD = Infinity;
+    for (const [idx, ax] of candidates) {
+      const d = Math.abs(xPx - ax);
+      if (d < bestD) { bestD = d; best = idx; }
+    }
+    return bestD < imgW * 0.02 ? best : null;
+  }
+
+  function setSlider(idx, xPx) {
+    const sl = [slHa, slD, slHb][idx];
+    if (!sl) return;
+    sl.value = xPx;
+    updateFit();
+    drawOverlay();
+  }
+
+  overlayC.addEventListener('mousemove', e => {
+    if (!specImg || dragging !== null) return;
+    overlayC.style.cursor = nearestActiveAnchor(xPixelFromEvent(e)) !== null ? 'ew-resize' : 'crosshair';
+  });
+
+  overlayC.addEventListener('mousedown', e => {
+    if (!specImg) return;
+    const idx = nearestActiveAnchor(xPixelFromEvent(e));
+    if (idx !== null) {
+      dragging = idx;
+      overlayC.style.cursor = 'ew-resize';
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (dragging === null || !specImg) return;
+    setSlider(dragging, xPixelFromEvent(e));
+    e.preventDefault();
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (dragging === null) return;
+    setSlider(dragging, xPixelFromEvent(e));
+    dragging = null;
+    overlayC.style.cursor = 'crosshair';
+  });
+
+  overlayC.addEventListener('click', e => {
+    if (!specImg || dragging !== null) return;
+    const xPx = xPixelFromEvent(e);
+    const { xa, xd, xb } = getSliderVals();
+    const candidates = calibMode === '2pt'
+      ? [[1, xd], [2, xb]]
+      : [[0, xa], [1, xd], [2, xb]];
+    let best = null, bestD = Infinity;
+    for (const [idx, ax] of candidates) {
+      const d = Math.abs(xPx - ax);
+      if (d < bestD) { bestD = d; best = idx; }
+    }
+    if (best !== null) setSlider(best, xPx);
+  });
+
+  overlayC.addEventListener('touchstart', e => {
+    if (!specImg) return;
+    const idx = nearestActiveAnchor(xPixelFromEvent(e));
+    if (idx !== null) { dragging = idx; e.preventDefault(); }
+  }, { passive: false });
+
+  overlayC.addEventListener('touchmove', e => {
+    if (dragging === null || !specImg) return;
+    setSlider(dragging, xPixelFromEvent(e));
+    e.preventDefault();
+  }, { passive: false });
+
+  overlayC.addEventListener('touchend', () => { dragging = null; });
+})();
+</script>
+</body>
+</html>
