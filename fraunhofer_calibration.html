@@ -519,7 +519,7 @@
   .example-btn:last-child { border-bottom: none; }
   .example-btn:hover { background: var(--panel2); color: var(--text-bright); }
   .example-btn:hover .example-arrow { color: var(--gold); }
-  .example-name { flex: 1; }
+  .example-name { flex: 1; white-space: nowrap; }
   .example-arrow { color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 14px; margin-left: 12px; flex-shrink: 0; }
 
   /* ── Hidden ── */
@@ -780,7 +780,7 @@
 
   <!-- File loader -->
   <div class="section-label">Spektrum laden</div>
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:32px;" id="loaderRow">
+  <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:32px;" id="loaderRow">
 
     <!-- Own image drop zone -->
     <div style="display:flex; flex-direction:column; gap:10px;">
