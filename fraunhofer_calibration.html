@@ -497,6 +497,31 @@
   /* Prevent scroll-while-dragging on canvases */
   .canvas-wrap canvas, .crop-canvas-wrap canvas { touch-action: none; }
 
+  /* ── Example spectrum buttons ── */
+  .example-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 400;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex: 1;
+  }
+  .example-btn:last-child { border-bottom: none; }
+  .example-btn:hover { background: var(--panel2); color: var(--text-bright); }
+  .example-btn:hover .example-arrow { color: var(--gold); }
+  .example-name { flex: 1; }
+  .example-arrow { color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 14px; margin-left: 12px; flex-shrink: 0; }
+
   /* ── Hidden ── */
   .hidden { display: none !important; }
 
@@ -619,6 +644,9 @@
 
     /* Section labels */
     .section-label { font-size: 11px; }
+
+    /* Loader row: stack on mobile */
+    #loaderRow { grid-template-columns: 1fr !important; }
 
     /* Interactive section spacing */
     .canvas-wrap { margin-bottom: 14px; }
@@ -752,13 +780,40 @@
 
   <!-- File loader -->
   <div class="section-label">Spektrum laden</div>
-  <div class="loader-zone" id="dropzone">
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8cad0" stroke-width="1.5" style="margin-bottom:12px;opacity:0.35;pointer-events:none">
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-    </svg>
-    <p id="dropText" style="pointer-events:none">Bild hierher ziehen oder <span>Datei auswählen</span></p>
-    <input type="file" id="fileInput" accept="image/*,.heic,.heif"
-           style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;">
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:32px;" id="loaderRow">
+
+    <!-- Own image drop zone -->
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <p style="font-size:13px; font-family:'DM Mono',monospace; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim);">Lade dein eigenes Sonnen-Spektrum</p>
+      <div class="loader-zone" id="dropzone" style="margin-bottom:0; flex:1;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8cad0" stroke-width="1.5" style="margin-bottom:12px;opacity:0.35;pointer-events:none">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+        </svg>
+        <p id="dropText" style="pointer-events:none">Bild hierher ziehen oder <span>Datei auswählen</span></p>
+        <input type="file" id="fileInput" accept="image/*,.heic,.heif"
+               style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;">
+      </div>
+    </div>
+
+    <!-- Example spectra -->
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <p style="font-size:13px; font-family:'DM Mono',monospace; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim);">Verwende ein Spektrum vom MPI-Handyspektrometer</p>
+      <div style="background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; flex:1; display:flex; flex-direction:column;">
+        <button class="example-btn" onclick="loadExampleSpectrum('example_spectra/mpi_handyspektrometer_original_dämmerung.HEIC')">
+          <span class="example-name">Originaler Spalt, Dämmerung</span>
+          <span class="example-arrow">→</span>
+        </button>
+        <button class="example-btn" onclick="loadExampleSpectrum('example_spectra/mpi_handyspektrometer_tuned_sonnenaufgang.HEIC')">
+          <span class="example-name">Optimierter Spalt, Sonnenaufgang</span>
+          <span class="example-arrow">→</span>
+        </button>
+        <button class="example-btn" onclick="loadExampleSpectrum('example_spectra/mpi_handyspektrometer_razor_tuned_mittag.HEIC')">
+          <span class="example-name">Rasierklingen Spalt, Mittagssonne</span>
+          <span class="example-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
   </div>
 
   <!-- ── Crop & Rotate Step ── -->
@@ -1003,6 +1058,35 @@ dropzone.addEventListener('drop', e => {
   dropzone.classList.remove('drag-over');
   if (e.dataTransfer.files[0]) loadImageFile(e.dataTransfer.files[0]);
 });
+
+function loadExampleSpectrum(path) {
+  const name = path.split('/').pop();
+  dropText.textContent = 'Lade …';
+  if (typeof heic2any !== 'undefined' && /\.(heic|heif)$/i.test(path)) {
+    fetch(path)
+      .then(r => r.blob())
+      .then(blob => heic2any({ blob, toType: 'image/jpeg' }))
+      .then(jpeg => {
+        const url = URL.createObjectURL(jpeg);
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); applyImageElement(img, name); };
+        img.onerror = () => { dropText.textContent = 'Fehler beim Laden des Beispiels.'; };
+        img.src = url;
+      })
+      .catch(() => {
+        // heic2any failed or not HEIC — try loading directly
+        const img = new Image();
+        img.onload = () => applyImageElement(img, name);
+        img.onerror = () => { dropText.textContent = 'Beispielbild nicht gefunden.'; };
+        img.src = path;
+      });
+  } else {
+    const img = new Image();
+    img.onload = () => applyImageElement(img, name);
+    img.onerror = () => { dropText.textContent = 'Beispielbild nicht gefunden.'; };
+    img.src = path;
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Profile extraction
