@@ -1485,9 +1485,18 @@ function drawOverlay() {
 
   const annotations = [];
   ALL_LINES.forEach(({ name, wl, elem, kind }) => {
-    const xp = wlToX(wl) * scaleX;
-    if (xp < 2 || xp > W - 2) return;
     const isAnchor = anchorActive.has(wl);
+    // Anchor lines must use slider positions (not calibrated wavelength positions)
+    // so visual lines stay aligned with drag hotspots even in 3pt least-squares mode
+    let xp;
+    if (isAnchor) {
+      if      (wl === WL_HA) xp = xa * scaleX;
+      else if (wl === WL_D)  xp = xd * scaleX;
+      else                   xp = xb * scaleX;
+    } else {
+      xp = wlToX(wl) * scaleX;
+    }
+    if (xp < 2 || xp > W - 2) return;
     const col = isAnchor
       ? (wl === WL_HA ? COLORS.ha : wl === WL_D ? COLORS.d : COLORS.hb)
       : (kind === 'atm' ? 'rgba(100,210,255,0.7)' : 'rgba(200,200,200,0.7)');
