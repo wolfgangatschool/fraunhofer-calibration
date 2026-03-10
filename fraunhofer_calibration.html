@@ -581,6 +581,13 @@
       font-size: 13px !important;
     }
 
+    /* Crop description: stack columns on mobile */
+    #cropSection > div[style*="grid-template-columns:1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+      gap: 16px 0 !important;
+      padding: 16px !important;
+    }
+
     /* Crop layout: fully stacked */
     .crop-layout { gap: 12px; }
     .crop-sidebar { grid-template-columns: 1fr; }
@@ -757,6 +764,16 @@
   <!-- ── Crop & Rotate Step ── -->
   <div id="cropSection" class="hidden">
     <div class="section-label">Bild ausrichten &amp; zuschneiden</div>
+    <div style="background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:20px 26px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:0 32px;">
+      <div>
+        <p style="font-size:13px; font-family:'DM Mono',monospace; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:10px;">Ausrichtung</p>
+        <p style="font-family:'Playfair Display',serif; font-size:16px; font-weight:400; color:var(--text); line-height:1.75;">Das Spektrum muss waagrecht ausgerichtet sein — <span style="color:var(--accent-ha); font-weight:400;">Rot</span> links, <span style="color:var(--accent-hb); font-weight:400;">Blau/Violett</span> rechts. Verwende die 90°-Schaltflächen für grobe Rotation und den Feinkorrektur-Regler zum Begradigen.</p>
+      </div>
+      <div>
+        <p style="font-size:13px; font-family:'DM Mono',monospace; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:10px;">Zuschnitt</p>
+        <p style="font-family:'Playfair Display',serif; font-size:16px; font-weight:400; color:var(--text); line-height:1.75;">Schneide oben und unten so zu, dass nur das reine Spektralband übrig bleibt — ohne Beschriftungen, Ränder oder dunkle Streifen. Links und rechts können unverändert bleiben.</p>
+      </div>
+    </div>
     <div class="crop-layout">
       <!-- Left sidebar: rotation + crop controls -->
       <div class="crop-sidebar">
