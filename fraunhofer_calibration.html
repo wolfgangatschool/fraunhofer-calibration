@@ -649,8 +649,10 @@
     /* Section labels */
     .section-label { font-size: 11px; }
 
-    /* Loader row: stack on mobile */
+    /* Loader row: stack on mobile, allow text to wrap */
     #loaderRow { grid-template-columns: 1fr !important; }
+    #loaderRow p { white-space: normal !important; }
+    .example-name { white-space: normal; }
 
     /* Interactive section spacing */
     .canvas-wrap { margin-bottom: 14px; }
