@@ -1525,29 +1525,33 @@ function drawOverlay() {
   annotations.sort((a, b) => a.xp - b.xp);
   annotations.forEach((ann, i) => { ann.row = i % ROWS; });
 
-  // ── Vertical lines ──
+  // ── Vertical lines (drawn first so labels render on top) ──
   const tickH = Math.min(Math.round(naturalH * 0.18), 20);
-  annotations.forEach(({ xp, col, isAnchor, row }) => {
+  annotations.forEach(({ xp, col, isAnchor }) => {
     ctx.strokeStyle = col;
-    // Label baseline y — line extends from just below label text down into spectrum
-    const labelBottom = PAD + row * lineH + fontSize + 3;
     if (isAnchor) {
       ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(xp, labelBottom); ctx.lineTo(xp, dispH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, dispH); ctx.stroke();
     } else {
       ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(xp, labelBottom); ctx.lineTo(xp, stripH + tickH); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(xp, dispH - tickH); ctx.lineTo(xp, dispH);        ctx.stroke();
+      // Line from top of strip through spectrum top tick
+      ctx.beginPath(); ctx.moveTo(xp, 0); ctx.lineTo(xp, stripH + tickH); ctx.stroke();
+      // Short tick at bottom of spectrum
+      ctx.beginPath(); ctx.moveTo(xp, dispH - tickH); ctx.lineTo(xp, dispH); ctx.stroke();
     }
   });
 
-  // ── Labels in annotation strip ──
+  // ── Labels in annotation strip (drawn over lines) ──
   ctx.font = `bold ${fontSize}px "DM Mono", monospace`;
   annotations.forEach(({ xp, lbl, col, row }) => {
     const ly = PAD + row * lineH + fontSize;
     ctx.fillStyle = col;
     const tw = ctx.measureText(lbl).width;
     const lx = Math.min(xp + 3, W - tw - 3);
+    // Small black background behind label so the line doesn't bleed through the text
+    ctx.fillStyle = 'rgba(10,11,14,0.75)';
+    ctx.fillRect(lx - 2, ly - fontSize, tw + 4, fontSize + 3);
+    ctx.fillStyle = col;
     ctx.fillText(lbl, lx, ly);
   });
 
