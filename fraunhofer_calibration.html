@@ -1725,11 +1725,16 @@ function renderAnnotated() {
 function _doRender() {
   // Layout constants (in original image pixels)
   const W = imgW, H = imgH;
-  const FONT_BOLD  = 'bold 54px "DM Mono", monospace';
-  const FONT_SUB   = 'bold 54px "DM Mono", monospace';
-  const FONT_SCALE = '44px "DM Mono", monospace';
-  const FONT_TITLE = '300 74px "Playfair Display", serif';
-  const FONT_NOTE  = '400 52px "DM Mono", monospace';
+
+  // All sizes as percentage of canvas width — image-resolution and platform independent.
+  // pct(p): p% of W, minimum 1px.
+  const pct = p => Math.max(1, Math.round(W * p / 100));
+
+  const FONT_BOLD  = `bold ${pct(1.34)}px "DM Mono", monospace`;
+  const FONT_SUB   = `bold ${pct(1.34)}px "DM Mono", monospace`;
+  const FONT_SCALE = `${pct(1.09)}px "DM Mono", monospace`;
+  const FONT_TITLE = `300 ${pct(1.84)}px "Playfair Display", serif`;
+  const FONT_NOTE  = `400 ${pct(1.29)}px "DM Mono", monospace`;
 
   // Scratch context for text measuring
   const scratch = document.createElement('canvas').getContext('2d');
@@ -1737,13 +1742,13 @@ function _doRender() {
   function th(font) {
     scratch.font = font;
     const m = scratch.measureText('M');
-    return (m.actualBoundingBoxAscent || 0) + (m.actualBoundingBoxDescent || 0) + 8;
+    return (m.actualBoundingBoxAscent || 0) + (m.actualBoundingBoxDescent || 0) + pct(0.20);
   }
 
-  const GAP = 18, ROW_GAP = 60, TITLE_MARGIN = 40, TITLE_TO_ROW = 60;
-  const BAR_OFFSET = 55, NOTE_MARGIN = 60, LINE_FRAC = 7, LINE_WIDTH = 5;
+  const GAP = pct(0.45), ROW_GAP = pct(1.49), TITLE_MARGIN = pct(0.99), TITLE_TO_ROW = pct(1.49);
+  const BAR_OFFSET = pct(1.36), NOTE_MARGIN = pct(1.49), LINE_FRAC = 7, LINE_WIDTH = Math.max(1, pct(0.12));
 
-  const label_h  = th(FONT_BOLD) + GAP + th(FONT_SUB) + 10;
+  const label_h  = th(FONT_BOLD) + GAP + th(FONT_SUB) + pct(0.25);
   const title_h  = th(FONT_TITLE);
   const note_h   = th(FONT_NOTE);
   const scale_lh = th(FONT_SCALE);
@@ -1784,7 +1789,7 @@ function _doRender() {
   const ROWS_BTU = [ROW_D, ROW_C, ROW_B, ROW_A]; // closest first
 
   function assignRow(name, x, lw_) {
-    const xl = x - lw_/2 - 8, xr = x + lw_/2 + 8;
+    const xl = x - lw_/2 - pct(0.20), xr = x + lw_/2 + pct(0.20);
     for (const row of ROWS_BTU) {
       if (!placed.some(p => p.row === row && xl < p.r && xr > p.l)) {
         placed.push({ l: xl, r: xr, row });
@@ -1814,7 +1819,7 @@ function _doRender() {
     const mh = th(FONT_BOLD);
 
     const ly = assignRow(name, x, mw);
-    const lx = Math.max(4, Math.min(W - mw - 4, x - mw/2));
+    const lx = Math.max(pct(0.10), Math.min(W - mw - pct(0.10), x - mw/2));
 
     // Shadow
     ctx.font = FONT_BOLD;
@@ -1831,17 +1836,17 @@ function _doRender() {
     ctx.strokeStyle = lc;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(x, ly + mh + 4);
+    ctx.moveTo(x, ly + mh + pct(0.10));
     ctx.lineTo(x, spec_top);
     ctx.stroke();
   });
 
   // ── Scale bar ──
   const bar_y   = spec_bot + BAR_OFFSET;
-  const label_y = bar_y + 28;
+  const label_y = bar_y + pct(0.69);
 
   ctx.strokeStyle = '#c8c8c8';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = Math.max(1, pct(0.07));
   ctx.beginPath(); ctx.moveTo(0, bar_y); ctx.lineTo(W, bar_y); ctx.stroke();
 
   for (let wl = 320; wl < 740; wl += 10) {
@@ -1849,14 +1854,14 @@ function _doRender() {
     if (x < 0 || x >= W) continue;
     ctx.strokeStyle = '#787878';
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y+14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y + pct(0.35)); ctx.stroke();
   }
   for (let wl = 300; wl < 740; wl += 50) {
     const x = Math.round(wlToX(wl));
     if (x < 0 || x >= W) continue;
     ctx.strokeStyle = '#dcdcdc';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y+30); ctx.stroke();
+    ctx.lineWidth = Math.max(1, pct(0.07));
+    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y + pct(0.74)); ctx.stroke();
     const lbl = String(wl);
     ctx.font = FONT_SCALE;
     ctx.fillStyle = '#d2d2d2';
@@ -1869,14 +1874,14 @@ function _doRender() {
     const x = Math.round(wlToX(wl));
     if (x < 0 || x >= W) return;
     ctx.strokeStyle = '#ffe63c';
-    ctx.lineWidth = 5;
-    ctx.beginPath(); ctx.moveTo(x, bar_y-16); ctx.lineTo(x, bar_y); ctx.stroke();
+    ctx.lineWidth = Math.max(1, pct(0.12));
+    ctx.beginPath(); ctx.moveTo(x, bar_y - pct(0.40)); ctx.lineTo(x, bar_y); ctx.stroke();
   });
 
   ctx.font = FONT_SCALE;
   ctx.fillStyle = '#b4b4b4';
   ctx.textBaseline = 'top';
-  ctx.fillText('nm', W - 80, label_y);
+  ctx.fillText('nm', W - pct(1.98), label_y);
 
   // ── Bottom notes ──
   const { xa, xd, xb } = getSliderVals();
@@ -1890,7 +1895,7 @@ function _doRender() {
     : `3-Punkt-Fit: C(Hα/656,3nm), D₂(Na/589,0nm), F(Hβ/486,1nm)`;
   const note2 = `Maßstab: ${Math.abs(calib.a).toFixed(5)} nm/Px`;
 
-  const scale_bottom = label_y + scale_lh + 30;
+  const scale_bottom = label_y + scale_lh + pct(0.74);
   const available = totalH - scale_bottom;
   const spacing   = (available - note_h * 2) / 3;
 
