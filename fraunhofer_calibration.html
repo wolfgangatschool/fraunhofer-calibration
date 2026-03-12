@@ -1680,7 +1680,8 @@ function applyMode(mode) {
 
   // Show/hide C slider (only matters once image is loaded)
   sliderHaWrap.style.display = mode === '2pt' ? 'none' : '';
-  slidersWrap.style.gridTemplateColumns = mode === '2pt' ? '1fr 1fr' : '1fr 1fr 1fr';
+  // Only override columns for 2pt (CSS default handles 3pt and all mobile breakpoints)
+  slidersWrap.style.gridTemplateColumns = mode === '2pt' ? '1fr 1fr' : '';
 
   // Update ANCHOR_WLS for overlay drawing
   if (mode === '2pt') {
