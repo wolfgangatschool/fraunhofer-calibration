@@ -140,7 +140,7 @@
     border-right: 1px solid var(--border);
   }
   .desc-section {
-    padding: 22px 26px;
+    padding: 18px 22px;
     flex: 1;
   }
   .desc-section + .desc-section {
@@ -153,7 +153,7 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--gold);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   .desc-section p {
     font-family: 'Playfair Display', serif;
@@ -163,7 +163,7 @@
     line-height: 1.75;
   }
   .desc-right {
-    padding: 22px 26px;
+    padding: 18px 22px;
     display: flex;
     flex-direction: column;
   }
@@ -174,8 +174,17 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--gold);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
+
+  /* ── Settings block ── */
+  .settings-body { display: flex; }
+  .settings-body .desc-section { flex: 1; padding: 14px 22px; display: flex; flex-direction: column; }
+  .settings-body .desc-section + .desc-section { border-top: none; border-left: 1px solid var(--border); }
+  .settings-block .method-opts-row { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  /* Method selector: vertical stack on mobile */
+  .method-opts-row { flex-direction: column !important; }
+  .settings-block .method-card { padding: 10px 16px; gap: 3px; }
   .step-num {
     display: inline-flex;
     align-items: center;
@@ -219,7 +228,7 @@
     font-family: 'DM Mono', monospace;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: var(--gold);
     margin-bottom: 12px;
     display: flex;
     align-items: center;
@@ -594,9 +603,7 @@
 
     main { padding: 0 12px 32px; }
 
-    /* Method selector: vertical stack */
-    .method-opts-row { flex-direction: column !important; }
-    .desc-block.method-selector { padding: 18px 16px; }
+    .settings-block { margin-top: 16px; }
 
     /* Anchor hints */
     .anchor-hints { margin: 16px 0 0; }
@@ -605,6 +612,9 @@
 
     /* Description unified: single column, Katalog 1 col */
     .desc-section { padding: 16px; }
+    .settings-body { flex-direction: column; }
+    .settings-body .desc-section + .desc-section { border-left: none; border-top: 1px solid var(--border); }
+    .settings-body .desc-section { padding: 12px 16px; }
     .desc-section p, .desc-right p { font-size: 15px; }
     .desc-right { padding: 16px; }
     #katalog-3pt[style*="grid"], #katalog-2pt[style*="grid"] {
@@ -663,7 +673,7 @@
     .render-btn { margin-bottom: 20px; }
 
     /* Method selector tighter on mobile */
-    .desc-block.method-selector { margin-top: 16px !important; padding: 14px 14px; }
+    .settings-block { margin-top: 12px; }
     .anchor-hints { margin-top: 12px; }
     .desc-unified { margin: 12px 0 20px; }
   }
@@ -691,25 +701,61 @@
 <main>
 
   <!-- Anchor line hints -->
-  <!-- Kalibriermethode selector -->
-  <div class="desc-block method-selector" style="margin:28px 0 0; border-radius:var(--radius); border:1px solid var(--border); background:var(--panel); padding:24px 28px;">
-    <h3>Kalibriermethode</h3>
-    <div class="method-opts-row" style="display:flex; gap:12px; margin-top:14px;">
-      <label class="method-opt" id="opt-2pt">
-        <input type="radio" name="method" value="2pt" checked>
-        <div class="method-card">
-          <span class="method-title">2-Punkt Interpolation</span>
-          <span class="method-desc">Lineare Interpolation zwischen D₂(Na) und F(Hβ)</span>
-        </div>
-      </label>
-      <label class="method-opt" id="opt-3pt">
-        <input type="radio" name="method" value="3pt">
-        <div class="method-card">
-          <span class="method-title">3-Punkt Fit</span>
-          <span class="method-desc">Kleinste-Quadrate-Fit durch C(Hα), D₂(Na) und F(Hβ)</span>
-        </div>
-      </label>
+  <!-- Einstellungen -->
+  <div class="section-label" style="margin-top:28px;">Einstellungen</div>
+  <div class="settings-block" style="border-radius:var(--radius); border:1px solid var(--border); background:var(--panel); overflow:hidden;">
+    <div class="settings-body">
+
+    <!-- Setting 1: Kalibriermethode -->
+    <div class="desc-section">
+      <h3>Kalibriermethode</h3>
+      <div class="method-opts-row">
+        <label class="method-opt" id="opt-2pt">
+          <input type="radio" name="method" value="2pt" checked>
+          <div class="method-card">
+            <span class="method-title">2-Punkt Interpolation</span>
+            <span class="method-desc">Lineare Interpolation zwischen D₂(Na) und F(Hβ)</span>
+          </div>
+        </label>
+        <label class="method-opt" id="opt-3pt">
+          <input type="radio" name="method" value="3pt">
+          <div class="method-card">
+            <span class="method-title">3-Punkt Fit</span>
+            <span class="method-desc">Kleinste-Quadrate-Fit durch C(Hα), D₂(Na) und F(Hβ)</span>
+          </div>
+        </label>
+      </div>
     </div>
+
+    <!-- Setting 2: Einheit -->
+    <div class="desc-section">
+      <h3>Einheit</h3>
+      <div class="method-opts-row">
+        <label class="method-opt unit-opt" id="opt-nm">
+          <input type="radio" name="unit" value="nm" checked>
+          <div class="method-card">
+            <span class="method-title">Nanometer (nm)</span>
+            <span class="method-desc">Wellenlänge λ</span>
+          </div>
+        </label>
+        <label class="method-opt unit-opt" id="opt-ev">
+          <input type="radio" name="unit" value="eV">
+          <div class="method-card">
+            <span class="method-title">Elektronenvolt (eV)</span>
+            <span class="method-desc">Photonenenergie E = hc/λ</span>
+          </div>
+        </label>
+        <label class="method-opt unit-opt" id="opt-thz">
+          <input type="radio" name="unit" value="THz">
+          <div class="method-card">
+            <span class="method-title">Terahertz (THz)</span>
+            <span class="method-desc">Frequenz ν = c/λ</span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    </div><!-- end settings-body -->
   </div>
 
   <!-- Anchor line hints (mode-dependent rows) -->
@@ -718,15 +764,15 @@
       <p style="font-family:'DM Sans',sans-serif; font-size:17px; font-weight:400; color:var(--text); line-height:1.5;">Die folgenden Linien müssen im Spektrum erkennbar sein um die Kalibrierung durchzuführen.</p>
     </div>
     <div class="anchor-row" id="hint-ha">
-      <span class="badge badge-ha">C(Hα/656.3nm)</span>
+      <span class="badge badge-ha" data-name="C" data-elem="Hα" data-wl="656.3">C(Hα/656.3nm)</span>
       <span class="anchor-hint-text">Tiefes Rot am äußersten sichtbaren Ende des Spektrums — suche die markante dunkle Linie kurz vor dem Abfall ins Unsichtbare</span>
     </div>
     <div class="anchor-row">
-      <span class="badge badge-d">D₂(Na/589.0nm)</span>
+      <span class="badge badge-d" data-name="D₂" data-elem="Na" data-wl="589.0">D₂(Na/589.0nm)</span>
       <span class="anchor-hint-text">Warmgelb-Orange, nahe dem Helligkeitsmaximum des Spektrums — das auffälligste dunkle Doppel in diesem Bereich</span>
     </div>
     <div class="anchor-row">
-      <span class="badge badge-hb">F(Hβ/486.1nm)</span>
+      <span class="badge badge-hb" data-name="F" data-elem="Hβ" data-wl="486.1">F(Hβ/486.1nm)</span>
       <span class="anchor-hint-text">Blau-Cyan, deutlich jenseits der Grünzone — das stärkste dunkle Band auf der blauen Seite vor dem Abfall ins Violett</span>
     </div>
   </div>
@@ -760,30 +806,30 @@
       <h3>Fraunhofer-Katalog</h3>
       <p style="font-size:15px; font-family:'DM Sans',sans-serif; font-weight:300; line-height:1.75; color:var(--text); margin-bottom:18px;">Die <span style="font-weight:700; color:var(--text-bright)">hervorgehobenen Fraunhofer-Linien</span> werden für die Kalibrierung verwendet. Die restlichen können zur Plausibilisierung herangezogen werden.</p>
       <div id="katalog-3pt" style="display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:repeat(4,auto); grid-auto-flow:column; gap:0 8px; line-height:2.1; font-family:'DM Mono',monospace; font-size:14px;">
-        <span>B(O₂/686.7nm)</span>
-        <span style="color:var(--accent-ha); font-weight:700">C(Hα/656.3nm)</span>
-        <span>D₁(Na/589.6nm)</span>
-        <span style="color:var(--accent-d); font-weight:700">D₂(Na/589.0nm)</span>
-        <span>E₂(Fe/527.0nm)</span>
-        <span>b₁(Mg/518.4nm)</span>
-        <span style="color:var(--accent-hb); font-weight:700">F(Hβ/486.1nm)</span>
-        <span>G'(Hγ/434.0nm)</span>
-        <span>G(Fe+Ca/430.8nm)</span>
-        <span>H(Ca⁺/396.8nm)</span>
-        <span>K(Ca⁺/393.4nm)</span>
+        <span data-name="B"   data-elem="O₂"    data-wl="686.7">B(O₂/686.7nm)</span>
+        <span data-name="C"   data-elem="Hα"    data-wl="656.3" style="color:var(--accent-ha); font-weight:700">C(Hα/656.3nm)</span>
+        <span data-name="D₁"  data-elem="Na"    data-wl="589.6">D₁(Na/589.6nm)</span>
+        <span data-name="D₂"  data-elem="Na"    data-wl="589.0" style="color:var(--accent-d); font-weight:700">D₂(Na/589.0nm)</span>
+        <span data-name="E₂"  data-elem="Fe"    data-wl="527.0">E₂(Fe/527.0nm)</span>
+        <span data-name="b₁"  data-elem="Mg"    data-wl="518.4">b₁(Mg/518.4nm)</span>
+        <span data-name="F"   data-elem="Hβ"    data-wl="486.1" style="color:var(--accent-hb); font-weight:700">F(Hβ/486.1nm)</span>
+        <span data-name="G'"  data-elem="Hγ"    data-wl="434.0">G'(Hγ/434.0nm)</span>
+        <span data-name="G"   data-elem="Fe+Ca" data-wl="430.8">G(Fe+Ca/430.8nm)</span>
+        <span data-name="H"   data-elem="Ca⁺"   data-wl="396.8">H(Ca⁺/396.8nm)</span>
+        <span data-name="K"   data-elem="Ca⁺"   data-wl="393.4">K(Ca⁺/393.4nm)</span>
       </div>
       <div id="katalog-2pt" style="display:none; grid-template-columns:1fr 1fr 1fr; grid-template-rows:repeat(4,auto); grid-auto-flow:column; gap:0 8px; line-height:2.1; font-family:'DM Mono',monospace; font-size:14px;">
-        <span>B(O₂/686.7nm)</span>
-        <span>C(Hα/656.3nm)</span>
-        <span>D₁(Na/589.6nm)</span>
-        <span style="color:var(--accent-d); font-weight:700">D₂(Na/589.0nm)</span>
-        <span>E₂(Fe/527.0nm)</span>
-        <span>b₁(Mg/518.4nm)</span>
-        <span style="color:var(--accent-hb); font-weight:700">F(Hβ/486.1nm)</span>
-        <span>G'(Hγ/434.0nm)</span>
-        <span>G(Fe+Ca/430.8nm)</span>
-        <span>H(Ca⁺/396.8nm)</span>
-        <span>K(Ca⁺/393.4nm)</span>
+        <span data-name="B"   data-elem="O₂"    data-wl="686.7">B(O₂/686.7nm)</span>
+        <span data-name="C"   data-elem="Hα"    data-wl="656.3">C(Hα/656.3nm)</span>
+        <span data-name="D₁"  data-elem="Na"    data-wl="589.6">D₁(Na/589.6nm)</span>
+        <span data-name="D₂"  data-elem="Na"    data-wl="589.0" style="color:var(--accent-d); font-weight:700">D₂(Na/589.0nm)</span>
+        <span data-name="E₂"  data-elem="Fe"    data-wl="527.0">E₂(Fe/527.0nm)</span>
+        <span data-name="b₁"  data-elem="Mg"    data-wl="518.4">b₁(Mg/518.4nm)</span>
+        <span data-name="F"   data-elem="Hβ"    data-wl="486.1" style="color:var(--accent-hb); font-weight:700">F(Hβ/486.1nm)</span>
+        <span data-name="G'"  data-elem="Hγ"    data-wl="434.0">G'(Hγ/434.0nm)</span>
+        <span data-name="G"   data-elem="Fe+Ca" data-wl="430.8">G(Fe+Ca/430.8nm)</span>
+        <span data-name="H"   data-elem="Ca⁺"   data-wl="396.8">H(Ca⁺/396.8nm)</span>
+        <span data-name="K"   data-elem="Ca⁺"   data-wl="393.4">K(Ca⁺/393.4nm)</span>
       </div>
     </div>
   </div>
@@ -955,6 +1001,14 @@ let imgW = 0, imgH = 0;
 let profile = null;   // Float64Array of length imgW
 let calib = { a: -0.1, b: 700 };
 let calibMode = '2pt'; // '3pt' or '2pt'
+let annotUnit = 'nm';  // 'nm' | 'eV' | 'THz'
+
+// Format a wavelength (nm) into the currently selected annotation unit
+function fmtWl(wl) {
+  if (annotUnit === 'eV')  return (1239.84 / wl).toFixed(3) + 'eV';
+  if (annotUnit === 'THz') return (299792.458 / wl).toFixed(1) + 'THz';
+  return wl.toFixed(1) + 'nm';
+}
 
 const WL_HA = 656.3, WL_D = 589.0, WL_HB = 486.1;
 
@@ -1611,7 +1665,7 @@ function drawOverlay() {
     const col = isAnchor
       ? (wl === WL_HA ? COLORS.ha : wl === WL_D ? COLORS.d : COLORS.hb)
       : (kind === 'atm' ? 'rgba(100,210,255,0.7)' : 'rgba(200,200,200,0.7)');
-    const lbl = shortLabel ? name : `${name}(${elem}/${wl.toFixed(1)}nm)`;
+    const lbl = shortLabel ? name : `${name}(${elem}/${fmtWl(wl)})`;
     annotations.push({ xp, lbl, col, isAnchor, wl });
   });
 
@@ -1697,7 +1751,7 @@ function applyMode(mode) {
 
 // iOS Safari does not fire 'change' on hidden radio inputs.
 // Listen to 'click' on the wrapping label instead.
-document.querySelectorAll('label.method-opt').forEach(label => {
+document.querySelectorAll('label.method-opt:not(.unit-opt)').forEach(label => {
   label.addEventListener('click', () => {
     const radio = label.querySelector('input[type=radio]');
     if (radio) applyMode(radio.value);
@@ -1705,6 +1759,28 @@ document.querySelectorAll('label.method-opt').forEach(label => {
 });
 // Apply default mode on load
 applyMode(calibMode);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Annotation unit switching
+// ─────────────────────────────────────────────────────────────────────────────
+function updateLineLabels() {
+  document.querySelectorAll('[data-wl]').forEach(el => {
+    el.textContent = `${el.dataset.name}(${el.dataset.elem}/${fmtWl(+el.dataset.wl)})`;
+  });
+}
+
+function applyUnit(unit) {
+  annotUnit = unit;
+  updateLineLabels();
+  if (specImg) drawOverlay();
+}
+
+document.querySelectorAll('label.unit-opt').forEach(label => {
+  label.addEventListener('click', () => {
+    const radio = label.querySelector('input[type=radio]');
+    if (radio) applyUnit(radio.value);
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Render annotated spectrum
@@ -1818,7 +1894,7 @@ function _doRender() {
     ctx.beginPath(); ctx.moveTo(x, spec_top);      ctx.lineTo(x, line_top_end);   ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x, line_bot_start); ctx.lineTo(x, spec_bot);       ctx.stroke();
 
-    const main = `${name}(${elem}/${wl.toFixed(1)}nm)`;
+    const main = `${name}(${elem}/${fmtWl(wl)})`;
     const mw = tw(main, FONT_BOLD);
     const mh = th(FONT_BOLD);
 
@@ -1866,7 +1942,9 @@ function _doRender() {
     ctx.strokeStyle = '#dcdcdc';
     ctx.lineWidth = Math.max(1, pct(0.07));
     ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y + pct(0.74)); ctx.stroke();
-    const lbl = String(wl);
+    const lbl = annotUnit === 'eV'  ? (1239.84 / wl).toFixed(2)
+              : annotUnit === 'THz' ? (299792.458 / wl).toFixed(0)
+              : String(wl);
     ctx.font = FONT_SCALE;
     ctx.fillStyle = '#d2d2d2';
     ctx.textBaseline = 'top';
@@ -1885,7 +1963,7 @@ function _doRender() {
   ctx.font = FONT_SCALE;
   ctx.fillStyle = '#b4b4b4';
   ctx.textBaseline = 'top';
-  ctx.fillText('nm', W - pct(1.98), label_y);
+  ctx.fillText(annotUnit, W - pct(1.98), label_y);
 
   // ── Bottom notes ──
   const { xa, xd, xb } = getSliderVals();
@@ -1895,8 +1973,8 @@ function _doRender() {
     Math.abs(calib.a*xb + calib.b - WL_HB)
   );
   const note1 = calibMode === '2pt'
-    ? `2-Punkt-Interpolation: D₂(Na/589,0nm) und F(Hβ/486,1nm)`
-    : `3-Punkt-Fit: C(Hα/656,3nm), D₂(Na/589,0nm), F(Hβ/486,1nm)`;
+    ? `2-Punkt-Interpolation: D₂(Na/${fmtWl(WL_D)}) und F(Hβ/${fmtWl(WL_HB)})`
+    : `3-Punkt-Fit: C(Hα/${fmtWl(WL_HA)}), D₂(Na/${fmtWl(WL_D)}), F(Hβ/${fmtWl(WL_HB)})`;
   const note2 = `Maßstab: ${Math.abs(calib.a).toFixed(5)} nm/Px`;
 
   const scale_bottom = label_y + scale_lh + pct(0.74);
