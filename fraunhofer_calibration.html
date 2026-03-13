@@ -500,7 +500,9 @@
   .crop-canvas-wrap canvas { display: block; width: 100%; height: auto; }
 
   /* Prevent scroll-while-dragging on canvases */
-  .canvas-wrap canvas, .crop-canvas-wrap canvas { touch-action: none; }
+  .crop-canvas-wrap canvas { touch-action: none; }
+  /* pinch-zoom: browser handles two-finger zoom; single-touch goes to JS for marker dragging */
+  .canvas-wrap canvas { touch-action: pinch-zoom; }
 
   /* ── Example spectrum buttons ── */
   .example-btn {
@@ -2014,13 +2016,13 @@ downloadBtn.addEventListener('click', async () => {
   });
 
   overlayC.addEventListener('touchstart', e => {
-    if (!specImg) return;
+    if (!specImg || e.touches.length > 1) { dragging = null; return; }
     const idx = nearestActiveAnchor(xPixelFromEvent(e));
     if (idx !== null) { dragging = idx; e.preventDefault(); }
   }, { passive: false });
 
   overlayC.addEventListener('touchmove', e => {
-    if (dragging === null || !specImg) return;
+    if (dragging === null || !specImg || e.touches.length > 1) { dragging = null; return; }
     setSlider(dragging, xPixelFromEvent(e));
     e.preventDefault();
   }, { passive: false });
