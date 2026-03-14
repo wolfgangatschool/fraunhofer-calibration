@@ -305,9 +305,7 @@
     transform: scale(1.25);
     box-shadow: 0 0 0 4px rgba(255,255,255,0.06);
   }
-  #sl-ha { color: var(--accent-ha); }
-  #sl-d  { color: var(--accent-d);  }
-  #sl-hb { color: var(--accent-hb); }
+  /* Anchor slider colors set inline per-line */
 
   /* ── Fit status ── */
   .fit-status {
@@ -566,8 +564,8 @@
     .desc-unified { grid-template-columns: 1fr; }
     .desc-left { border-right: none; border-bottom: 1px solid var(--border); }
 
-    /* Fraunhofer katalog: 2 columns on tablet — only affects layout when visible */
-    #katalog-3pt[style*="grid"], #katalog-2pt[style*="grid"] {
+    /* Fraunhofer katalog: 2 columns on tablet */
+    #katalog {
       grid-template-columns: 1fr 1fr !important;
       grid-template-rows: repeat(6, auto) !important;
     }
@@ -582,7 +580,7 @@
     }
 
     /* Calibration sliders: 2 columns */
-    .sliders { grid-template-columns: 1fr 1fr; }
+    .sliders { grid-template-columns: 1fr 1fr !important; }
 
     /* Fit-status formula: allow wrap */
     .fit-status { gap: 20px; }
@@ -617,7 +615,7 @@
     .settings-body .desc-section { padding: 12px 16px; }
     .desc-section p, .desc-right p { font-size: 15px; }
     .desc-right { padding: 16px; }
-    #katalog-3pt[style*="grid"], #katalog-2pt[style*="grid"] {
+    #katalog {
       grid-template-columns: 1fr 1fr !important;
       grid-template-rows: repeat(6, auto) !important;
       font-size: 13px !important;
@@ -643,7 +641,7 @@
     }
 
     /* Calibration sliders: single column */
-    .sliders { grid-template-columns: 1fr; }
+    .sliders { grid-template-columns: 1fr !important; }
     .slider-group { padding: 14px 16px; }
     .slider-group label .line-name { font-size: 14px; }
     .slider-group label .line-px { font-size: 12px; }
@@ -676,6 +674,25 @@
     .settings-block { margin-top: 12px; }
     .anchor-hints { margin-top: 12px; }
     .desc-unified { margin: 12px 0 20px; }
+  }
+
+  /* ── Katalog with checkboxes ── */
+  .katalog-line {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    line-height: 2.1;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .katalog-line input[type=checkbox] {
+    width: 13px;
+    height: 13px;
+    accent-color: var(--gold);
+    cursor: pointer;
+    flex-shrink: 0;
   }
 
   /* ── Touch-friendly: bigger crop handles on touch devices ── */
@@ -720,7 +737,7 @@
         <label class="method-opt" id="opt-3pt">
           <input type="radio" name="method" value="3pt">
           <div class="method-card">
-            <span class="method-title">3-Punkt Fit</span>
+            <span class="method-title"><span id="opt-n">3</span>-Punkt Fit</span>
             <span class="method-desc">Kleinste-Quadrate-Fit durch C(Hα), D₂(Na) und F(Hβ)</span>
           </div>
         </label>
@@ -758,31 +775,12 @@
     </div><!-- end settings-body -->
   </div>
 
-  <!-- Anchor line hints (mode-dependent rows) -->
-  <div class="anchor-hints">
-    <div style="padding: 16px 28px 14px; border-bottom: 1px solid var(--border);">
-      <p style="font-family:'DM Sans',sans-serif; font-size:17px; font-weight:400; color:var(--text); line-height:1.5;">Die folgenden Linien müssen im Spektrum erkennbar sein um die Kalibrierung durchzuführen.</p>
-    </div>
-    <div class="anchor-row" id="hint-ha">
-      <span class="badge badge-ha" data-name="C" data-elem="Hα" data-wl="656.3">C(Hα/656.3nm)</span>
-      <span class="anchor-hint-text">Tiefes Rot am äußersten sichtbaren Ende des Spektrums — suche die markante dunkle Linie kurz vor dem Abfall ins Unsichtbare</span>
-    </div>
-    <div class="anchor-row">
-      <span class="badge badge-d" data-name="D₂" data-elem="Na" data-wl="589.0">D₂(Na/589.0nm)</span>
-      <span class="anchor-hint-text">Warmgelb-Orange, nahe dem Helligkeitsmaximum des Spektrums — das auffälligste dunkle Doppel in diesem Bereich</span>
-    </div>
-    <div class="anchor-row">
-      <span class="badge badge-hb" data-name="F" data-elem="Hβ" data-wl="486.1">F(Hβ/486.1nm)</span>
-      <span class="anchor-hint-text">Blau-Cyan, deutlich jenseits der Grünzone — das stärkste dunkle Band auf der blauen Seite vor dem Abfall ins Violett</span>
-    </div>
-  </div>
-
   <div class="desc-unified">
     <!-- Left: Methode + Ablauf stacked -->
     <div class="desc-left">
       <div class="desc-section">
         <h3>Methode</h3>
-        <p id="desc-method-3pt">Ein linearer Fit λ(x) = a·x + b wird durch drei bekannte Fraunhofer-Absorptionslinien bestimmt. Die Ankerpunkte werden manuell über Schieberegler im Helligkeitsprofil verortet.</p>
+        <p id="desc-method-3pt">Ein linearer Fit λ(x) = a·x + b wird durch <span id="desc-n">3</span> bekannte Fraunhofer-Absorptionslinien bestimmt. Die Ankerpunkte werden manuell über Schieberegler im Helligkeitsprofil verortet.</p>
         <p id="desc-method-2pt" style="display:none">Eine lineare Interpolation λ(x) = a·x + b wird durch zwei bekannte Fraunhofer-Linien exakt bestimmt. D₂(Na) und F(Hβ) werden als Ankerpunkte manuell gesetzt.</p>
       </div>
       <div class="desc-section">
@@ -790,7 +788,7 @@
         <p id="desc-ablauf-3pt">
           <span class="step-num">1</span>Spektrumsbild laden<br>
           <span class="step-num">2</span>Bild ausrichten &amp; zuschneiden<br>
-          <span class="step-num">3</span>Drei Linien mit Schiebereglern setzen<br>
+          <span class="step-num">3</span><span id="ablauf-n">3</span> Linien mit Schiebereglern setzen<br>
           <span class="step-num">4</span>Annotiertes Bild rendern &amp; herunterladen
         </p>
         <p id="desc-ablauf-2pt" style="display:none">
@@ -805,33 +803,16 @@
     <div class="desc-right">
       <h3>Fraunhofer-Katalog</h3>
       <p style="font-size:15px; font-family:'DM Sans',sans-serif; font-weight:300; line-height:1.75; color:var(--text); margin-bottom:18px;">Die <span style="font-weight:700; color:var(--text-bright)">hervorgehobenen Fraunhofer-Linien</span> werden für die Kalibrierung verwendet. Die restlichen können zur Plausibilisierung herangezogen werden.</p>
-      <div id="katalog-3pt" style="display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:repeat(4,auto); grid-auto-flow:column; gap:0 8px; line-height:2.1; font-family:'DM Mono',monospace; font-size:14px;">
-        <span data-name="B"   data-elem="O₂"    data-wl="686.7">B(O₂/686.7nm)</span>
-        <span data-name="C"   data-elem="Hα"    data-wl="656.3" style="color:var(--accent-ha); font-weight:700">C(Hα/656.3nm)</span>
-        <span data-name="D₁"  data-elem="Na"    data-wl="589.6">D₁(Na/589.6nm)</span>
-        <span data-name="D₂"  data-elem="Na"    data-wl="589.0" style="color:var(--accent-d); font-weight:700">D₂(Na/589.0nm)</span>
-        <span data-name="E₂"  data-elem="Fe"    data-wl="527.0">E₂(Fe/527.0nm)</span>
-        <span data-name="b₁"  data-elem="Mg"    data-wl="518.4">b₁(Mg/518.4nm)</span>
-        <span data-name="F"   data-elem="Hβ"    data-wl="486.1" style="color:var(--accent-hb); font-weight:700">F(Hβ/486.1nm)</span>
-        <span data-name="G'"  data-elem="Hγ"    data-wl="434.0">G'(Hγ/434.0nm)</span>
-        <span data-name="G"   data-elem="Fe+Ca" data-wl="430.8">G(Fe+Ca/430.8nm)</span>
-        <span data-name="H"   data-elem="Ca⁺"   data-wl="396.8">H(Ca⁺/396.8nm)</span>
-        <span data-name="K"   data-elem="Ca⁺"   data-wl="393.4">K(Ca⁺/393.4nm)</span>
-      </div>
-      <div id="katalog-2pt" style="display:none; grid-template-columns:1fr 1fr 1fr; grid-template-rows:repeat(4,auto); grid-auto-flow:column; gap:0 8px; line-height:2.1; font-family:'DM Mono',monospace; font-size:14px;">
-        <span data-name="B"   data-elem="O₂"    data-wl="686.7">B(O₂/686.7nm)</span>
-        <span data-name="C"   data-elem="Hα"    data-wl="656.3">C(Hα/656.3nm)</span>
-        <span data-name="D₁"  data-elem="Na"    data-wl="589.6">D₁(Na/589.6nm)</span>
-        <span data-name="D₂"  data-elem="Na"    data-wl="589.0" style="color:var(--accent-d); font-weight:700">D₂(Na/589.0nm)</span>
-        <span data-name="E₂"  data-elem="Fe"    data-wl="527.0">E₂(Fe/527.0nm)</span>
-        <span data-name="b₁"  data-elem="Mg"    data-wl="518.4">b₁(Mg/518.4nm)</span>
-        <span data-name="F"   data-elem="Hβ"    data-wl="486.1" style="color:var(--accent-hb); font-weight:700">F(Hβ/486.1nm)</span>
-        <span data-name="G'"  data-elem="Hγ"    data-wl="434.0">G'(Hγ/434.0nm)</span>
-        <span data-name="G"   data-elem="Fe+Ca" data-wl="430.8">G(Fe+Ca/430.8nm)</span>
-        <span data-name="H"   data-elem="Ca⁺"   data-wl="396.8">H(Ca⁺/396.8nm)</span>
-        <span data-name="K"   data-elem="Ca⁺"   data-wl="393.4">K(Ca⁺/393.4nm)</span>
-      </div>
+      <div id="katalog" style="display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:repeat(4,auto); grid-auto-flow:column; gap:0 8px;"></div>
     </div>
+  </div>
+
+  <!-- Anchor line hints (dynamic) -->
+  <div class="anchor-hints">
+    <div style="padding: 16px 28px 14px; border-bottom: 1px solid var(--border);">
+      <p style="font-family:'DM Sans',sans-serif; font-size:17px; font-weight:400; color:var(--text); line-height:1.5;">Die folgenden Linien müssen im Spektrum erkennbar sein um die Kalibrierung durchzuführen.</p>
+    </div>
+    <div id="hintRows"></div>
   </div>
 
   <!-- File loader -->
@@ -941,30 +922,8 @@
       <canvas id="overlayCanvas"></canvas>
     </div>
 
-    <!-- Sliders -->
-    <div class="sliders" id="slidersWrap">
-      <div class="slider-group" id="slider-ha">
-        <label>
-          <span class="line-name" style="color:var(--accent-ha)">C(Hα/656.3nm)</span>
-          <span class="line-px" id="px-ha">x = –</span>
-        </label>
-        <input type="range" id="sl-ha" min="0" max="1000" value="250">
-      </div>
-      <div class="slider-group">
-        <label>
-          <span class="line-name" style="color:var(--accent-d)">D₂(Na/589.0nm)</span>
-          <span class="line-px" id="px-d">x = –</span>
-        </label>
-        <input type="range" id="sl-d" min="0" max="1000" value="500">
-      </div>
-      <div class="slider-group">
-        <label>
-          <span class="line-name" style="color:var(--accent-hb)">F(Hβ/486.1nm)</span>
-          <span class="line-px" id="px-hb">x = –</span>
-        </label>
-        <input type="range" id="sl-hb" min="0" max="1000" value="750">
-      </div>
-    </div>
+    <!-- Sliders (populated dynamically) -->
+    <div class="sliders" id="slidersWrap"></div>
 
     <!-- Fit stats -->
     <div class="fit-status" id="fitStatus">
@@ -1010,27 +969,39 @@ function fmtWl(wl) {
   return wl.toFixed(1) + 'nm';
 }
 
-const WL_HA = 656.3, WL_D = 589.0, WL_HB = 486.1;
-
 const ALL_LINES = [
-  { name: 'B',   wl: 686.7, elem: 'O₂',    kind: 'atm'   },
-  { name: 'C',   wl: 656.3, elem: 'Hα',    kind: 'solar' },
-  { name: 'D₁',  wl: 589.6, elem: 'Na',    kind: 'solar' },
-  { name: 'D₂',  wl: 589.0, elem: 'Na',    kind: 'solar' },
-  { name: 'E₂',  wl: 527.0, elem: 'Fe',    kind: 'solar' },
-  { name: 'b₁',  wl: 518.4, elem: 'Mg',    kind: 'solar' },
-  { name: 'F',   wl: 486.1, elem: 'Hβ',    kind: 'solar' },
-  { name: "G'",  wl: 434.0, elem: 'Hγ',    kind: 'solar' },
-  { name: 'G',   wl: 430.8, elem: 'Fe+Ca', kind: 'solar' },
-  { name: 'H',   wl: 396.8, elem: 'Ca⁺',   kind: 'solar' },
-  { name: 'K',   wl: 393.4, elem: 'Ca⁺',   kind: 'solar' },
+  { name: 'B',  wl: 686.7, elem: 'O₂',    kind: 'atm',   color: '#80d0ff',
+    hint: 'Dunkelrot, am Rand des Sichtbaren — atmosphärische Sauerstoffabsorption, suche das schwache Doppelband kurz vor dem Infrarotbereich' },
+  { name: 'C',  wl: 656.3, elem: 'Hα',    kind: 'solar', color: '#ff6666',
+    hint: 'Tiefes Rot am äußersten sichtbaren Ende des Spektrums — suche die markante dunkle Linie kurz vor dem Abfall ins Unsichtbare' },
+  { name: 'D₁', wl: 589.6, elem: 'Na',    kind: 'solar', color: '#ffcc44',
+    hint: 'Warmgelb-Orange, direkt neben D₂ — das schwächere der Natrium-Doppels, erkennbar als enges Linienpaar im Gelben' },
+  { name: 'D₂', wl: 589.0, elem: 'Na',    kind: 'solar', color: '#ffaa44',
+    hint: 'Warmgelb-Orange, nahe dem Helligkeitsmaximum des Spektrums — das auffälligste dunkle Doppel in diesem Bereich' },
+  { name: 'E₂', wl: 527.0, elem: 'Fe',    kind: 'solar', color: '#88dd88',
+    hint: 'Grün, mittig im Spektrum — Eisenabsorption im hellen Grünbereich, zwischen den Natriumlinien und Hβ' },
+  { name: 'b₁', wl: 518.4, elem: 'Mg',    kind: 'solar', color: '#66cc88',
+    hint: 'Grün-Blaugrün, etwas ins Blaue verschoben — Magnesiumlinie im hellen Grünbereich des Spektrums' },
+  { name: 'F',  wl: 486.1, elem: 'Hβ',    kind: 'solar', color: '#66ccff',
+    hint: 'Blau-Cyan, deutlich jenseits der Grünzone — das stärkste dunkle Band auf der blauen Seite vor dem Abfall ins Violett' },
+  { name: "G'", wl: 434.0, elem: 'Hγ',    kind: 'solar', color: '#aa88ff',
+    hint: 'Violett, nahe dem sichtbaren Spektralende — Wasserstoff-Balmer-γ, schwächere Linie im blauvioletten Bereich' },
+  { name: 'G',  wl: 430.8, elem: 'Fe+Ca', kind: 'solar', color: '#9977ff',
+    hint: "Violett, direkt neben G' — Eisen und Kalzium im tiefvioletten Bereich, oft als Paar mit G' sichtbar" },
+  { name: 'H',  wl: 396.8, elem: 'Ca⁺',   kind: 'solar', color: '#cc77dd',
+    hint: 'Tiefviolett, am äußersten Rand — ionisiertes Kalzium, sehr starke und breite Absorptionslinie' },
+  { name: 'K',  wl: 393.4, elem: 'Ca⁺',   kind: 'solar', color: '#bb66cc',
+    hint: 'Tiefviolett, ganz am Ende — die stärkste Fraunhofer-Linie im sichtbaren Spektrum, oft gerade noch erkennbar' },
 ];
-const ANCHOR_WLS = new Set([WL_HA, WL_D, WL_HB]);
 
-const COLORS = {
-  ha: '#ff6666', d: '#ffaa44', hb: '#66ccff',
-  solar: 'rgba(255,255,255,0.8)', atm: 'rgba(100,210,255,0.8)'
-};
+// Anchor state: which lines are used as calibration anchors, and their pixel positions
+let selectedAnchors = new Set();  // Set<wl>
+let sliderPositions  = new Map(); // Map<wl, pixelX>
+
+function defaultAnchors(mode) {
+  return mode === '2pt' ? new Set([589.0, 486.1]) : new Set([656.3, 589.0, 486.1]);
+}
+function lineByWl(wl) { return ALL_LINES.find(l => l.wl === wl); }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DOM refs
@@ -1042,12 +1013,6 @@ const cropSection = document.getElementById('cropSection');
 const interSec    = document.getElementById('interactiveSection');
 const overlayC    = document.getElementById('overlayCanvas');
 const resultC     = document.getElementById('resultCanvas');
-const slHa        = document.getElementById('sl-ha');
-const slD         = document.getElementById('sl-d');
-const slHb        = document.getElementById('sl-hb');
-const pxHa        = document.getElementById('px-ha');
-const pxD         = document.getElementById('px-d');
-const pxHb        = document.getElementById('px-hb');
 const statFormula = document.getElementById('stat-formula');
 const statScale   = document.getElementById('stat-scale');
 const statRes     = document.getElementById('stat-res');
@@ -1055,9 +1020,7 @@ const renderBtn   = document.getElementById('renderBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const resultWrap  = document.getElementById('resultWrap');
 const resultLabel = document.getElementById('resultLabel');
-const sliderHaWrap = document.getElementById('slider-ha');
-const hintHa       = document.getElementById('hint-ha');
-const slidersWrap  = document.getElementById('slidersWrap');
+const slidersWrap = document.getElementById('slidersWrap');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // File loading
@@ -1519,67 +1482,180 @@ cropConfirmBtn.addEventListener('click', async () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sliders init + events
+// Dynamic UI: catalog, hints, sliders
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildCatalog() {
+  const container = document.getElementById('katalog');
+  if (!container) return;
+  container.innerHTML = '';
+  ALL_LINES.forEach(line => {
+    const isAnchor = selectedAnchors.has(line.wl);
+    const lbl = document.createElement('label');
+    lbl.className = 'katalog-line';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = isAnchor;
+    cb.addEventListener('change', () => onAnchorToggle(line.wl, cb.checked));
+    const span = document.createElement('span');
+    span.dataset.name = line.name;
+    span.dataset.elem = line.elem;
+    span.dataset.wl   = String(line.wl);
+    span.textContent  = `${line.name}(${line.elem}/${fmtWl(line.wl)})`;
+    span.style.color      = isAnchor ? line.color : '';
+    span.style.fontWeight = isAnchor ? '700' : '';
+    lbl.appendChild(cb);
+    lbl.appendChild(span);
+    container.appendChild(lbl);
+  });
+}
+
+function onAnchorToggle(wl, checked) {
+  if (!checked && selectedAnchors.size <= 2) { buildCatalog(); return; }
+  if (checked) selectedAnchors.add(wl);
+  else         selectedAnchors.delete(wl);
+
+  // Auto-switch fit method: 3+ anchors → 3pt, exactly 2 → 2pt
+  const n = selectedAnchors.size;
+  const newMode = n >= 3 ? '3pt' : '2pt';
+  if (newMode !== calibMode) {
+    calibMode = newMode;
+    const radio = document.querySelector(`input[name=method][value="${newMode}"]`);
+    if (radio) radio.checked = true;
+    updateModeDisplay(newMode);
+  }
+  updateMethodDesc();
+  buildCatalog();
+  rebuildHints();
+  if (specImg) { rebuildSliders(); updateFit(); drawOverlay(); }
+}
+
+function rebuildHints() {
+  const container = document.getElementById('hintRows');
+  if (!container) return;
+  container.innerHTML = '';
+  ALL_LINES.filter(l => selectedAnchors.has(l.wl)).forEach(line => {
+    const row = document.createElement('div');
+    row.className = 'anchor-row';
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.style.color   = line.color;
+    badge.dataset.name  = line.name;
+    badge.dataset.elem  = line.elem;
+    badge.dataset.wl    = String(line.wl);
+    badge.textContent   = `${line.name}(${line.elem}/${fmtWl(line.wl)})`;
+    const text = document.createElement('span');
+    text.className   = 'anchor-hint-text';
+    text.textContent = line.hint;
+    row.appendChild(badge);
+    row.appendChild(text);
+    container.appendChild(row);
+  });
+}
+
+function rebuildSliders() {
+  slidersWrap.innerHTML = '';
+  const anchors = ALL_LINES.filter(l => selectedAnchors.has(l.wl));
+  anchors.forEach(line => {
+    const pos = sliderPositions.has(line.wl) ? sliderPositions.get(line.wl) : Math.round(imgW * 0.5);
+    const group = document.createElement('div');
+    group.className = 'slider-group';
+    const lbl = document.createElement('label');
+    const nameSpan = document.createElement('span');
+    nameSpan.className    = 'line-name';
+    nameSpan.style.color  = line.color;
+    nameSpan.dataset.name = line.name;
+    nameSpan.dataset.elem = line.elem;
+    nameSpan.dataset.wl   = String(line.wl);
+    nameSpan.textContent  = `${line.name}(${line.elem}/${fmtWl(line.wl)})`;
+    const pxSpan = document.createElement('span');
+    pxSpan.className        = 'line-px';
+    pxSpan.dataset.pxWl     = String(line.wl);
+    pxSpan.textContent      = `x = ${pos}`;
+    lbl.appendChild(nameSpan);
+    lbl.appendChild(pxSpan);
+    const input = document.createElement('input');
+    input.type            = 'range';
+    input.min             = 0;
+    input.max             = imgW > 0 ? imgW - 1 : 1000;
+    input.value           = pos;
+    input.style.color     = line.color;
+    input.dataset.anchorWl = String(line.wl);
+    input.addEventListener('input', () => {
+      sliderPositions.set(line.wl, +input.value);
+      updateFit(); drawOverlay();
+    });
+    group.appendChild(lbl);
+    group.appendChild(input);
+    slidersWrap.appendChild(group);
+  });
+  slidersWrap.style.gridTemplateColumns = `repeat(${Math.min(anchors.length, 4)}, 1fr)`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sliders init + fit
 // ─────────────────────────────────────────────────────────────────────────────
 function initSliders() {
-  slHa.max = imgW - 1;
-  slD.max  = imgW - 1;
-  slHb.max = imgW - 1;
-  slHa.value = Math.round(imgW * 0.25);
-  slD.value  = Math.round(imgW * 0.50);
-  slHb.value = Math.round(imgW * 0.75);
+  // Initialise proportional slider positions for all lines
+  const wls = ALL_LINES.map(l => l.wl);
+  const minWl = Math.min(...wls), maxWl = Math.max(...wls);
+  ALL_LINES.forEach(line => {
+    const frac = (maxWl - line.wl) / (maxWl - minWl); // 0 = red end, 1 = blue end
+    sliderPositions.set(line.wl, Math.round(imgW * (0.05 + frac * 0.90)));
+  });
+  rebuildSliders();
   updateFit();
 }
 
-[slHa, slD, slHb].forEach(sl => sl.addEventListener('input', () => { updateFit(); drawOverlay(); }));
-
 function getSliderVals() {
-  return { xa: +slHa.value, xd: +slD.value, xb: +slHb.value };
+  // Returns [{wl, x}] for selected anchors, in ALL_LINES order (high→low wl)
+  return ALL_LINES
+    .filter(l => selectedAnchors.has(l.wl))
+    .map(l => ({ wl: l.wl, x: sliderPositions.get(l.wl) || 0 }));
 }
 
-function polyfit3(x1,y1, x2,y2, x3,y3) {
-  // Solve  [x  1] * [a; b] = y  in least-squares sense for 3 points
-  const n=3, sx=x1+x2+x3, sx2=x1*x1+x2*x2+x3*x3;
-  const sy=y1+y2+y3, sxy=x1*y1+x2*y2+x3*y3;
+function polyfitN(pts) {
+  // pts: [{x, y}] — linear least-squares  y = a*x + b
+  const n = pts.length;
+  let sx = 0, sx2 = 0, sy = 0, sxy = 0;
+  for (const { x, y } of pts) { sx += x; sx2 += x*x; sy += y; sxy += x*y; }
   const det = n*sx2 - sx*sx;
-  const a = (n*sxy - sx*sy) / det;
-  const b = (sy - a*sx) / n;
+  const a   = (n*sxy - sx*sy) / det;
+  const b   = (sy - a*sx) / n;
   return { a, b };
 }
 
 function updateFit() {
-  const { xa, xd, xb } = getSliderVals();
+  const anchors = getSliderVals();
+  if (anchors.length < 2) return;
   let fit, maxRes;
 
-  if (calibMode === '2pt') {
-    // Exact 2-point interpolation through D2 and F
-    fit = { a: (WL_D - WL_HB) / (xd - xb), b: WL_D - (WL_D - WL_HB) / (xd - xb) * xd };
-    maxRes = 0; // exact — no residual
-    document.getElementById('stat-res-label').textContent = 'Residuum';
+  if (anchors.length === 2) {
+    const [p1, p2] = anchors;
+    const slope = (p1.wl - p2.wl) / (p1.x - p2.x);
+    fit    = { a: slope, b: p1.wl - slope * p1.x };
+    maxRes = 0;
+    document.getElementById('stat-res-label').textContent  = 'Residuum';
     document.getElementById('stat-res-wrap').style.opacity = '0.35';
   } else {
-    fit = polyfit3(xa, WL_HA, xd, WL_D, xb, WL_HB);
-    const res = [
-      Math.abs(fit.a*xa + fit.b - WL_HA),
-      Math.abs(fit.a*xd + fit.b - WL_D),
-      Math.abs(fit.a*xb + fit.b - WL_HB),
-    ];
-    maxRes = Math.max(...res);
-    document.getElementById('stat-res-label').textContent = 'Max. Residuum';
+    fit    = polyfitN(anchors.map(p => ({ x: p.x, y: p.wl })));
+    const residuals = anchors.map(p => Math.abs(fit.a * p.x + fit.b - p.wl));
+    maxRes = Math.max(...residuals);
+    document.getElementById('stat-res-label').textContent  = 'Max. Residuum';
     document.getElementById('stat-res-wrap').style.opacity = '1';
   }
 
   calib = fit;
-  // Format interpolation formula: λ(x) = a·x ± |b| nm
-  const aStr = fit.a.toFixed(6);
-  const bAbs = Math.abs(fit.b).toFixed(4);
+  const aStr  = fit.a.toFixed(6);
+  const bAbs  = Math.abs(fit.b).toFixed(4);
   const bSign = fit.b >= 0 ? ' + ' : ' − ';
   statFormula.textContent = `λ(x) = ${aStr} · x${bSign}${bAbs} nm`;
-  statScale.textContent = Math.abs(fit.a).toFixed(5) + ' nm/px';
-  statRes.textContent   = calibMode === '2pt' ? 'exakt' : maxRes.toFixed(3) + ' nm';
-  pxHa.textContent = `x = ${xa}`;
-  pxD.textContent  = `x = ${xd}`;
-  pxHb.textContent = `x = ${xb}`;
+  statScale.textContent   = Math.abs(fit.a).toFixed(5) + ' nm/px';
+  statRes.textContent     = anchors.length === 2 ? 'exakt' : maxRes.toFixed(3) + ' nm';
+  anchors.forEach(({ wl, x }) => {
+    const el = document.querySelector(`#slidersWrap [data-px-wl="${wl}"]`);
+    if (el) el.textContent = `x = ${x}`;
+  });
 }
 
 function wlToX(wl) { return (wl - calib.b) / calib.a; }
@@ -1620,7 +1696,6 @@ function drawOverlay() {
   // ── Spectrum image below strip ──
   ctx.drawImage(specImg, 0, stripH, W, naturalH);
 
-  const { xa, xd, xb } = getSliderVals();
   const scaleX = W / imgW;
 
   // ── Brightness profile (within spectrum area) ──
@@ -1644,26 +1719,18 @@ function drawOverlay() {
 
   // ── Collect all visible annotations ──
   const shortLabel = W < 520;
-  const anchorActive = calibMode === '2pt'
-    ? new Set([WL_D, WL_HB])
-    : new Set([WL_HA, WL_D, WL_HB]);
+  const anchorXPx  = new Map(getSliderVals().map(({ wl, x }) => [wl, x]));
 
   const annotations = [];
-  ALL_LINES.forEach(({ name, wl, elem, kind }) => {
-    const isAnchor = anchorActive.has(wl);
-    // Anchor lines must use slider positions (not calibrated wavelength positions)
-    // so visual lines stay aligned with drag hotspots even in 3pt least-squares mode
-    let xp;
-    if (isAnchor) {
-      if      (wl === WL_HA) xp = xa * scaleX;
-      else if (wl === WL_D)  xp = xd * scaleX;
-      else                   xp = xb * scaleX;
-    } else {
-      xp = wlToX(wl) * scaleX;
-    }
+  ALL_LINES.forEach(({ name, wl, elem, kind, color }) => {
+    const isAnchor = selectedAnchors.has(wl);
+    // Anchor lines use slider positions so visual lines stay aligned with drag hotspots
+    const xp = isAnchor
+      ? (anchorXPx.get(wl) || 0) * scaleX
+      : wlToX(wl) * scaleX;
     if (xp < 2 || xp > W - 2) return;
     const col = isAnchor
-      ? (wl === WL_HA ? COLORS.ha : wl === WL_D ? COLORS.d : COLORS.hb)
+      ? color
       : (kind === 'atm' ? 'rgba(100,210,255,0.7)' : 'rgba(200,200,200,0.7)');
     const lbl = shortLabel ? name : `${name}(${elem}/${fmtWl(wl)})`;
     annotations.push({ xp, lbl, col, isAnchor, wl });
@@ -1720,33 +1787,34 @@ window.addEventListener('resize', () => { if (specImg) drawOverlay(); });
 // ─────────────────────────────────────────────────────────────────────────────
 // Calibration mode switching
 // ─────────────────────────────────────────────────────────────────────────────
-function applyMode(mode) {
-  calibMode = mode;
-
-  // Show/hide C hint row
-  hintHa.style.display = mode === '2pt' ? 'none' : '';
-
-  // Swap description text
+function updateModeDisplay(mode) {
   document.getElementById('desc-method-3pt').style.display = mode === '3pt' ? '' : 'none';
   document.getElementById('desc-method-2pt').style.display = mode === '2pt' ? '' : 'none';
   document.getElementById('desc-ablauf-3pt').style.display = mode === '3pt' ? '' : 'none';
   document.getElementById('desc-ablauf-2pt').style.display = mode === '2pt' ? '' : 'none';
-  document.getElementById('katalog-3pt').style.display    = mode === '3pt' ? 'grid' : 'none';
-  document.getElementById('katalog-2pt').style.display    = mode === '2pt' ? 'grid' : 'none';
+}
 
-  // Show/hide C slider (only matters once image is loaded)
-  sliderHaWrap.style.display = mode === '2pt' ? 'none' : '';
-  // Only override columns for 2pt (CSS default handles 3pt and all mobile breakpoints)
-  slidersWrap.style.gridTemplateColumns = mode === '2pt' ? '1fr 1fr' : '';
+function updateMethodDesc() {
+  const n = selectedAnchors.size;
+  const el1 = document.getElementById('desc-n');
+  const el2 = document.getElementById('ablauf-n');
+  const el3 = document.getElementById('opt-n');
+  if (el1) el1.textContent = n;
+  if (el2) el2.textContent = n;
+  if (el3) el3.textContent = n > 2 ? n : 3;
+}
 
-  // Update ANCHOR_WLS for overlay drawing
-  if (mode === '2pt') {
-    ANCHOR_WLS.clear(); ANCHOR_WLS.add(WL_D); ANCHOR_WLS.add(WL_HB);
-  } else {
-    ANCHOR_WLS.clear(); ANCHOR_WLS.add(WL_HA); ANCHOR_WLS.add(WL_D); ANCHOR_WLS.add(WL_HB);
-  }
+function applyMode(mode) {
+  calibMode = mode;
 
-  if (specImg) { updateFit(); drawOverlay(); }
+  // Reset anchor selection to the defaults for this mode
+  selectedAnchors = defaultAnchors(mode);
+  buildCatalog();
+  rebuildHints();
+  updateModeDisplay(mode);
+  updateMethodDesc();
+
+  if (specImg) { rebuildSliders(); updateFit(); drawOverlay(); }
 }
 
 // iOS Safari does not fire 'change' on hidden radio inputs.
@@ -1966,15 +2034,13 @@ function _doRender() {
   ctx.fillText(annotUnit, W - pct(1.98), label_y);
 
   // ── Bottom notes ──
-  const { xa, xd, xb } = getSliderVals();
-  const res = Math.max(
-    Math.abs(calib.a*xa + calib.b - WL_HA),
-    Math.abs(calib.a*xd + calib.b - WL_D),
-    Math.abs(calib.a*xb + calib.b - WL_HB)
-  );
-  const note1 = calibMode === '2pt'
-    ? `2-Punkt-Interpolation: D₂(Na/${fmtWl(WL_D)}) und F(Hβ/${fmtWl(WL_HB)})`
-    : `3-Punkt-Fit: C(Hα/${fmtWl(WL_HA)}), D₂(Na/${fmtWl(WL_D)}), F(Hβ/${fmtWl(WL_HB)})`;
+  const anchorList = getSliderVals();
+  const fitLabel   = anchorList.length === 2 ? '2-Punkt-Interpolation' : `${anchorList.length}-Punkt-Fit`;
+  const anchorNames = anchorList.map(({ wl }) => {
+    const line = lineByWl(wl);
+    return `${line.name}(${line.elem}/${fmtWl(wl)})`;
+  }).join(', ');
+  const note1 = `${fitLabel}: ${anchorNames}`;
   const note2 = `Maßstab: ${Math.abs(calib.a).toFixed(5)} nm/Px`;
 
   const scale_bottom = label_y + scale_lh + pct(0.74);
@@ -2020,7 +2086,7 @@ downloadBtn.addEventListener('click', async () => {
 
 // Drag anchor lines on overlay canvas
 (function() {
-  let dragging = null; // index: 0=ha, 1=d, 2=hb
+  let dragging = null; // wl of line being dragged, or null
 
   function xPixelFromEvent(e) {
     const rect = overlayC.getBoundingClientRect();
@@ -2030,24 +2096,19 @@ downloadBtn.addEventListener('click', async () => {
 
   function nearestActiveAnchor(xPx) {
     if (!specImg) return null;
-    const { xa, xd, xb } = getSliderVals();
-    const candidates = calibMode === '2pt'
-      ? [[1, xd], [2, xb]]
-      : [[0, xa], [1, xd], [2, xb]];
-    let best = null, bestD = Infinity;
-    for (const [idx, ax] of candidates) {
-      const d = Math.abs(xPx - ax);
-      if (d < bestD) { bestD = d; best = idx; }
-    }
-    return bestD < imgW * 0.02 ? best : null;
+    let bestWl = null, bestD = Infinity;
+    getSliderVals().forEach(({ wl, x }) => {
+      const d = Math.abs(xPx - x);
+      if (d < bestD) { bestD = d; bestWl = wl; }
+    });
+    return bestD < imgW * 0.02 ? bestWl : null;
   }
 
-  function setSlider(idx, xPx) {
-    const sl = [slHa, slD, slHb][idx];
-    if (!sl) return;
-    sl.value = xPx;
-    updateFit();
-    drawOverlay();
+  function setSlider(wl, xPx) {
+    sliderPositions.set(wl, xPx);
+    const input = document.querySelector(`#slidersWrap input[data-anchor-wl="${wl}"]`);
+    if (input) input.value = xPx;
+    updateFit(); drawOverlay();
   }
 
   overlayC.addEventListener('mousemove', e => {
@@ -2057,12 +2118,8 @@ downloadBtn.addEventListener('click', async () => {
 
   overlayC.addEventListener('mousedown', e => {
     if (!specImg) return;
-    const idx = nearestActiveAnchor(xPixelFromEvent(e));
-    if (idx !== null) {
-      dragging = idx;
-      overlayC.style.cursor = 'ew-resize';
-      e.preventDefault();
-    }
+    const wl = nearestActiveAnchor(xPixelFromEvent(e));
+    if (wl !== null) { dragging = wl; overlayC.style.cursor = 'ew-resize'; e.preventDefault(); }
   });
 
   window.addEventListener('mousemove', e => {
@@ -2080,23 +2137,14 @@ downloadBtn.addEventListener('click', async () => {
 
   overlayC.addEventListener('click', e => {
     if (!specImg || dragging !== null) return;
-    const xPx = xPixelFromEvent(e);
-    const { xa, xd, xb } = getSliderVals();
-    const candidates = calibMode === '2pt'
-      ? [[1, xd], [2, xb]]
-      : [[0, xa], [1, xd], [2, xb]];
-    let best = null, bestD = Infinity;
-    for (const [idx, ax] of candidates) {
-      const d = Math.abs(xPx - ax);
-      if (d < bestD) { bestD = d; best = idx; }
-    }
-    if (best !== null) setSlider(best, xPx);
+    const wl = nearestActiveAnchor(xPixelFromEvent(e));
+    if (wl !== null) setSlider(wl, xPixelFromEvent(e));
   });
 
   overlayC.addEventListener('touchstart', e => {
     if (!specImg || e.touches.length > 1) { dragging = null; return; }
-    const idx = nearestActiveAnchor(xPixelFromEvent(e));
-    if (idx !== null) { dragging = idx; e.preventDefault(); }
+    const wl = nearestActiveAnchor(xPixelFromEvent(e));
+    if (wl !== null) { dragging = wl; e.preventDefault(); }
   }, { passive: false });
 
   overlayC.addEventListener('touchmove', e => {
