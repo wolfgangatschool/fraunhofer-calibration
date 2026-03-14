@@ -1940,9 +1940,11 @@ function _doRender() {
     const x = Math.round(wlToX(wl));
     if (x < 0 || x >= W) continue;
     ctx.strokeStyle = '#dcdcdc';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y+30); ctx.stroke();
-    const lbl = String(wl);
+    ctx.lineWidth = Math.max(1, pct(0.07));
+    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y + pct(0.74)); ctx.stroke();
+    const lbl = annotUnit === 'eV'  ? (1239.84 / wl).toFixed(2)
+              : annotUnit === 'THz' ? (299792.458 / wl).toFixed(0)
+              : String(wl);
     ctx.font = FONT_SCALE;
     ctx.fillStyle = '#d2d2d2';
     ctx.textBaseline = 'top';
@@ -1961,7 +1963,7 @@ function _doRender() {
   ctx.font = FONT_SCALE;
   ctx.fillStyle = '#b4b4b4';
   ctx.textBaseline = 'top';
-  ctx.fillText('nm', W - 80, label_y);
+  ctx.fillText(annotUnit, W - pct(1.98), label_y);
 
   // ── Bottom notes ──
   const { xa, xd, xb } = getSliderVals();
