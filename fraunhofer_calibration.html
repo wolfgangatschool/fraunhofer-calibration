@@ -1076,6 +1076,7 @@ function loadImageFile(file) {
 fileInput.addEventListener('change', function() {
   const file = this.files && this.files[0];
   if (file) loadImageFile(file);
+  this.value = '';
 });
 
 dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
