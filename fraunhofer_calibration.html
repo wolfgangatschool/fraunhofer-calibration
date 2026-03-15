@@ -1571,7 +1571,7 @@ function rebuildSliders() {
     const pxSpan = document.createElement('span');
     pxSpan.className        = 'line-px';
     pxSpan.dataset.pxWl     = String(line.wl);
-    pxSpan.textContent      = `x = ${pos}`;
+    pxSpan.textContent      = `x = ${pos} px`;
     lbl.appendChild(nameSpan);
     lbl.appendChild(pxSpan);
     const input = document.createElement('input');
@@ -1645,16 +1645,38 @@ function updateFit() {
     document.getElementById('stat-res-wrap').style.opacity = '1';
   }
 
-  calib = fit;
+  calib = fit; // always nm-based (needed by wlToX)
+
   const aStr  = fit.a.toFixed(6);
   const bAbs  = Math.abs(fit.b).toFixed(4);
   const bSign = fit.b >= 0 ? ' + ' : ' − ';
-  statFormula.textContent = `λ(x) = ${aStr} · x${bSign}${bAbs} nm`;
-  statScale.textContent   = Math.abs(fit.a).toFixed(5) + ' nm/px';
-  statRes.textContent     = anchors.length === 2 ? 'exakt' : maxRes.toFixed(3) + ' nm';
+  const inner = `${aStr} · x${bSign}${bAbs}`;
+  if (annotUnit === 'eV') {
+    statFormula.textContent = `E(x) = 1239.84 / (${inner}) eV`;
+    statScale.textContent   = Math.abs(fit.a).toFixed(5) + ' nm/px';
+    if (anchors.length === 2) {
+      statRes.textContent = 'exakt';
+    } else {
+      const eVRes = anchors.map(p => Math.abs(1239.84 / (fit.a * p.x + fit.b) - 1239.84 / p.wl));
+      statRes.textContent = Math.max(...eVRes).toFixed(5) + ' eV';
+    }
+  } else if (annotUnit === 'THz') {
+    statFormula.textContent = `ν(x) = 299792.458 / (${inner}) THz`;
+    statScale.textContent   = Math.abs(fit.a).toFixed(5) + ' nm/px';
+    if (anchors.length === 2) {
+      statRes.textContent = 'exakt';
+    } else {
+      const TRes = anchors.map(p => Math.abs(299792.458 / (fit.a * p.x + fit.b) - 299792.458 / p.wl));
+      statRes.textContent = Math.max(...TRes).toFixed(3) + ' THz';
+    }
+  } else {
+    statFormula.textContent = `λ(x) = ${inner} nm`;
+    statScale.textContent   = Math.abs(fit.a).toFixed(5) + ' nm/px';
+    statRes.textContent     = anchors.length === 2 ? 'exakt' : maxRes.toFixed(3) + ' nm';
+  }
   anchors.forEach(({ wl, x }) => {
     const el = document.querySelector(`#slidersWrap [data-px-wl="${wl}"]`);
-    if (el) el.textContent = `x = ${x}`;
+    if (el) el.textContent = `x = ${x} px`;
   });
 }
 
@@ -1840,7 +1862,7 @@ function updateLineLabels() {
 function applyUnit(unit) {
   annotUnit = unit;
   updateLineLabels();
-  if (specImg) drawOverlay();
+  if (specImg) { updateFit(); drawOverlay(); }
 }
 
 document.querySelectorAll('label.unit-opt').forEach(label => {
@@ -1997,26 +2019,37 @@ function _doRender() {
   ctx.lineWidth = Math.max(1, pct(0.07));
   ctx.beginPath(); ctx.moveTo(0, bar_y); ctx.lineTo(W, bar_y); ctx.stroke();
 
-  for (let wl = 320; wl < 740; wl += 10) {
-    const x = Math.round(wlToX(wl));
-    if (x < 0 || x >= W) continue;
-    ctx.strokeStyle = '#787878';
+  const drawMinorTick = x => {
+    if (x < 0 || x >= W) return;
+    ctx.strokeStyle = '#aaaaaa';
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y + pct(0.35)); ctx.stroke();
-  }
-  for (let wl = 300; wl < 740; wl += 50) {
-    const x = Math.round(wlToX(wl));
-    if (x < 0 || x >= W) continue;
+    ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y + pct(0.55)); ctx.stroke();
+  };
+  const drawMajorTick = (x, lbl) => {
+    if (x < 0 || x >= W) return;
     ctx.strokeStyle = '#dcdcdc';
     ctx.lineWidth = Math.max(1, pct(0.07));
     ctx.beginPath(); ctx.moveTo(x, bar_y); ctx.lineTo(x, bar_y + pct(0.74)); ctx.stroke();
-    const lbl = annotUnit === 'eV'  ? (1239.84 / wl).toFixed(2)
-              : annotUnit === 'THz' ? (299792.458 / wl).toFixed(0)
-              : String(wl);
     ctx.font = FONT_SCALE;
     ctx.fillStyle = '#d2d2d2';
     ctx.textBaseline = 'top';
     ctx.fillText(lbl, x - tw(lbl, FONT_SCALE)/2, label_y);
+  };
+  if (annotUnit === 'eV') {
+    for (let ev10 = 16; ev10 <= 42; ev10++)
+      drawMinorTick(Math.round(wlToX(1239.84 / (ev10 / 10))));
+    for (let ev10 = 15; ev10 <= 45; ev10 += 5)
+      drawMajorTick(Math.round(wlToX(1239.84 / (ev10 / 10))), (ev10 / 10).toFixed(1));
+  } else if (annotUnit === 'THz') {
+    for (let thz = 400; thz <= 1000; thz += 25)
+      drawMinorTick(Math.round(wlToX(299792.458 / thz)));
+    for (let thz = 400; thz <= 1000; thz += 100)
+      drawMajorTick(Math.round(wlToX(299792.458 / thz)), String(thz));
+  } else {
+    for (let wl = 320; wl < 740; wl += 10)
+      drawMinorTick(Math.round(wlToX(wl)));
+    for (let wl = 300; wl < 740; wl += 50)
+      drawMajorTick(Math.round(wlToX(wl)), String(wl));
   }
 
   // Yellow ticks at Fraunhofer positions
@@ -2041,7 +2074,7 @@ function _doRender() {
     return `${line.name}(${line.elem}/${fmtWl(wl)})`;
   }).join(', ');
   const note1 = `${fitLabel}: ${anchorNames}`;
-  const note2 = `Maßstab: ${Math.abs(calib.a).toFixed(5)} nm/Px`;
+  const note2 = `Maßstab: ${Math.abs(calib.a).toFixed(5)} nm/px`;
 
   const scale_bottom = label_y + scale_lh + pct(0.74);
   const available = totalH - scale_bottom;
