@@ -677,6 +677,21 @@
   }
 
   /* ── Katalog with checkboxes ── */
+  .katalog-select {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 7px 10px;
+  background: var(--panel);
+  color: var(--text-bright);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  appearance: auto;
+}
+.katalog-select:focus { outline: none; border-color: var(--gold); }
+
   .katalog-line {
     display: flex;
     align-items: center;
@@ -799,10 +814,14 @@
         </p>
       </div>
     </div>
-    <!-- Right: Fraunhofer-Katalog -->
+    <!-- Right: Linienkatalog -->
     <div class="desc-right">
-      <h3>Fraunhofer-Katalog</h3>
-      <p style="font-size:15px; font-family:'DM Sans',sans-serif; font-weight:300; line-height:1.75; color:var(--text); margin-bottom:18px;">Die <span style="font-weight:700; color:var(--text-bright)">hervorgehobenen Fraunhofer-Linien</span> werden für die Kalibrierung verwendet. Die restlichen können zur Plausibilisierung herangezogen werden.</p>
+      <h3 id="katalogTitle">Fraunhofer-Linien</h3>
+      <select id="katalogSelect" class="katalog-select">
+        <option value="fraunhofer" selected>Fraunhofer-Linien</option>
+        <option value="hydrogen">Wasserstoff – Balmer-Serie</option>
+      </select>
+      <p id="katalogDesc" style="font-size:15px; font-family:'DM Sans',sans-serif; font-weight:300; line-height:1.75; color:var(--text); margin-bottom:18px;">Die <b style="font-weight:700; color:var(--text-bright)">hervorgehobenen Linien</b> werden für die Kalibrierung verwendet. Die restlichen können zur Plausibilisierung herangezogen werden.</p>
       <div id="katalog" style="display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:repeat(4,auto); grid-auto-flow:column; gap:0 8px;"></div>
     </div>
   </div>
@@ -969,39 +988,107 @@ function fmtWl(wl) {
   return wl.toFixed(1) + 'nm';
 }
 
-const ALL_LINES = [
-  { name: 'B',  wl: 686.7, elem: 'O₂',    kind: 'atm',   color: '#80d0ff',
-    hint: 'Dunkelrot, am Rand des Sichtbaren — atmosphärische Sauerstoffabsorption, suche das schwache Doppelband kurz vor dem Infrarotbereich' },
-  { name: 'C',  wl: 656.3, elem: 'Hα',    kind: 'solar', color: '#ff6666',
-    hint: 'Tiefes Rot am äußersten sichtbaren Ende des Spektrums — suche die markante dunkle Linie kurz vor dem Abfall ins Unsichtbare' },
-  { name: 'D₁', wl: 589.6, elem: 'Na',    kind: 'solar', color: '#ffcc44',
-    hint: 'Warmgelb-Orange, direkt neben D₂ — das schwächere der Natrium-Doppels, erkennbar als enges Linienpaar im Gelben' },
-  { name: 'D₂', wl: 589.0, elem: 'Na',    kind: 'solar', color: '#ffaa44',
-    hint: 'Warmgelb-Orange, nahe dem Helligkeitsmaximum des Spektrums — das auffälligste dunkle Doppel in diesem Bereich' },
-  { name: 'E₂', wl: 527.0, elem: 'Fe',    kind: 'solar', color: '#88dd88',
-    hint: 'Grün, mittig im Spektrum — Eisenabsorption im hellen Grünbereich, zwischen den Natriumlinien und Hβ' },
-  { name: 'b₁', wl: 518.4, elem: 'Mg',    kind: 'solar', color: '#66cc88',
-    hint: 'Grün-Blaugrün, etwas ins Blaue verschoben — Magnesiumlinie im hellen Grünbereich des Spektrums' },
-  { name: 'F',  wl: 486.1, elem: 'Hβ',    kind: 'solar', color: '#66ccff',
-    hint: 'Blau-Cyan, deutlich jenseits der Grünzone — das stärkste dunkle Band auf der blauen Seite vor dem Abfall ins Violett' },
-  { name: "G'", wl: 434.0, elem: 'Hγ',    kind: 'solar', color: '#aa88ff',
-    hint: 'Violett, nahe dem sichtbaren Spektralende — Wasserstoff-Balmer-γ, schwächere Linie im blauvioletten Bereich' },
-  { name: 'G',  wl: 430.8, elem: 'Fe+Ca', kind: 'solar', color: '#9977ff',
-    hint: "Violett, direkt neben G' — Eisen und Kalzium im tiefvioletten Bereich, oft als Paar mit G' sichtbar" },
-  { name: 'H',  wl: 396.8, elem: 'Ca⁺',   kind: 'solar', color: '#cc77dd',
-    hint: 'Tiefviolett, am äußersten Rand — ionisiertes Kalzium, sehr starke und breite Absorptionslinie' },
-  { name: 'K',  wl: 393.4, elem: 'Ca⁺',   kind: 'solar', color: '#bb66cc',
-    hint: 'Tiefviolett, ganz am Ende — die stärkste Fraunhofer-Linie im sichtbaren Spektrum, oft gerade noch erkennbar' },
+// Interpolate a line color from the Fraunhofer solar palette (solar lines only, sorted by wl)
+const WL_COLOR_STOPS = [
+  [393.4, [187, 102, 204]],  // K  #bb66cc
+  [396.8, [204, 119, 221]],  // H  #cc77dd
+  [430.8, [153, 119, 255]],  // G  #9977ff
+  [434.0, [170, 136, 255]],  // G' #aa88ff
+  [486.1, [102, 204, 255]],  // F  #66ccff
+  [518.4, [102, 204, 136]],  // b₁ #66cc88
+  [527.0, [136, 221, 136]],  // E₂ #88dd88
+  [589.0, [255, 170,  68]],  // D₂ #ffaa44
+  [589.6, [255, 204,  68]],  // D₁ #ffcc44
+  [656.3, [255, 102, 102]],  // C  #ff6666
 ];
+function wlColor(wl) {
+  const s = WL_COLOR_STOPS;
+  if (wl <= s[0][0])             return '#' + s[0][1].map(v => v.toString(16).padStart(2,'0')).join('');
+  if (wl >= s[s.length-1][0])   return '#' + s[s.length-1][1].map(v => v.toString(16).padStart(2,'0')).join('');
+  for (let i = 0; i < s.length - 1; i++) {
+    const [w0, c0] = s[i], [w1, c1] = s[i+1];
+    if (wl >= w0 && wl <= w1) {
+      const t = (wl - w0) / (w1 - w0);
+      return '#' + c0.map((v, j) => Math.round(v + (c1[j] - v) * t).toString(16).padStart(2,'0')).join('');
+    }
+  }
+}
+
+const CATALOGS = {
+  fraunhofer: {
+    label: 'Fraunhofer-Linien',
+    desc: 'Die <b style="font-weight:700; color:var(--text-bright)">hervorgehobenen Linien</b> werden für die Kalibrierung verwendet. Die restlichen können zur Plausibilisierung herangezogen werden.',
+    defaults2pt: [589.0, 486.1],
+    defaults3pt: [656.3, 589.0, 486.1],
+    lines: [
+      { name: 'B',  wl: 686.7, elem: 'O₂',    kind: 'atm',      color: '#80d0ff',
+        hint: 'Dunkelrot, am Rand des Sichtbaren — atmosphärische Sauerstoffabsorption, suche das schwache Doppelband kurz vor dem Infrarotbereich' },
+      { name: 'C',  wl: 656.3, elem: 'Hα',    kind: 'solar',    color: '#ff6666',
+        hint: 'Tiefes Rot am äußersten sichtbaren Ende des Spektrums — suche die markante dunkle Linie kurz vor dem Abfall ins Unsichtbare' },
+      { name: 'D₁', wl: 589.6, elem: 'Na',    kind: 'solar',    color: '#ffcc44',
+        hint: 'Warmgelb-Orange, direkt neben D₂ — das schwächere der Natrium-Doppels, erkennbar als enges Linienpaar im Gelben' },
+      { name: 'D₂', wl: 589.0, elem: 'Na',    kind: 'solar',    color: '#ffaa44',
+        hint: 'Warmgelb-Orange, nahe dem Helligkeitsmaximum des Spektrums — das auffälligste dunkle Doppel in diesem Bereich' },
+      { name: 'E₂', wl: 527.0, elem: 'Fe',    kind: 'solar',    color: '#88dd88',
+        hint: 'Grün, mittig im Spektrum — Eisenabsorption im hellen Grünbereich, zwischen den Natriumlinien und Hβ' },
+      { name: 'b₁', wl: 518.4, elem: 'Mg',    kind: 'solar',    color: '#66cc88',
+        hint: 'Grün-Blaugrün, etwas ins Blaue verschoben — Magnesiumlinie im hellen Grünbereich des Spektrums' },
+      { name: 'F',  wl: 486.1, elem: 'Hβ',    kind: 'solar',    color: '#66ccff',
+        hint: 'Blau-Cyan, deutlich jenseits der Grünzone — das stärkste dunkle Band auf der blauen Seite vor dem Abfall ins Violett' },
+      { name: "G'", wl: 434.0, elem: 'Hγ',    kind: 'solar',    color: '#aa88ff',
+        hint: 'Violett, nahe dem sichtbaren Spektralende — Wasserstoff-Balmer-γ, schwächere Linie im blauvioletten Bereich' },
+      { name: 'G',  wl: 430.8, elem: 'Fe+Ca', kind: 'solar',    color: '#9977ff',
+        hint: "Violett, direkt neben G' — Eisen und Kalzium im tiefvioletten Bereich, oft als Paar mit G' sichtbar" },
+      { name: 'H',  wl: 396.8, elem: 'Ca⁺',   kind: 'solar',    color: '#cc77dd',
+        hint: 'Tiefviolett, am äußersten Rand — ionisiertes Kalzium, sehr starke und breite Absorptionslinie' },
+      { name: 'K',  wl: 393.4, elem: 'Ca⁺',   kind: 'solar',    color: '#bb66cc',
+        hint: 'Tiefviolett, ganz am Ende — die stärkste Fraunhofer-Linie im sichtbaren Spektrum, oft gerade noch erkennbar' },
+    ],
+  },
+  hydrogen: {
+    label: 'Wasserstoff – Balmer-Serie',
+    desc: 'Sichtbare Emissionslinien der <b style="font-weight:700; color:var(--text-bright)">Balmer-Serie des Wasserstoffs</b> (390–690 nm). Alle vier Linien sind in einer Wasserstofflampe gut erkennbar.',
+    defaults2pt: [656.3, 486.1],
+    defaults3pt: [656.3, 486.1, 434.0],
+    lines: [
+      { name: 'Hα', wl: 656.3, elem: 'H', kind: 'emission', color: wlColor(656.3),
+        hint: 'Rot — hellste Balmer-Linie, kräftige rote Emissionslinie' },
+      { name: 'Hβ', wl: 486.1, elem: 'H', kind: 'emission', color: wlColor(486.1),
+        hint: 'Blau-Cyan — zweithellste Linie, deutlich im blauen Bereich sichtbar' },
+      { name: 'Hγ', wl: 434.0, elem: 'H', kind: 'emission', color: wlColor(434.0),
+        hint: 'Violett — schwächer als Hα und Hβ, im blauvioletten Bereich' },
+      { name: 'Hδ', wl: 410.2, elem: 'H', kind: 'emission', color: wlColor(410.2),
+        hint: 'Tiefviolett — schwächste der vier Hauptlinien, nahe dem sichtbaren Rand' },
+    ],
+  },
+};
+
+let activeCatalog = 'fraunhofer';
+let ALL_LINES = CATALOGS.fraunhofer.lines;
 
 // Anchor state: which lines are used as calibration anchors, and their pixel positions
 let selectedAnchors = new Set();  // Set<wl>
 let sliderPositions  = new Map(); // Map<wl, pixelX>
 
 function defaultAnchors(mode) {
-  return mode === '2pt' ? new Set([589.0, 486.1]) : new Set([656.3, 589.0, 486.1]);
+  const cat = CATALOGS[activeCatalog];
+  return new Set(mode === '2pt' ? cat.defaults2pt : cat.defaults3pt);
 }
 function lineByWl(wl) { return ALL_LINES.find(l => l.wl === wl); }
+
+function switchCatalog(key) {
+  activeCatalog = key;
+  ALL_LINES = CATALOGS[key].lines;
+  selectedAnchors = defaultAnchors(calibMode);
+  const cat = CATALOGS[key];
+  const titleEl = document.getElementById('katalogTitle');
+  const descEl  = document.getElementById('katalogDesc');
+  if (titleEl) titleEl.textContent = cat.label;
+  if (descEl)  descEl.innerHTML   = cat.desc;
+  buildCatalog();
+  rebuildHints();
+  if (specImg) { positionNewAnchors(); rebuildSliders(); updateFit(); drawOverlay(); }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DOM refs
@@ -1513,8 +1600,15 @@ function buildCatalog() {
 
 function onAnchorToggle(wl, checked) {
   if (!checked && selectedAnchors.size <= 2) { buildCatalog(); return; }
-  if (checked) selectedAnchors.add(wl);
-  else         selectedAnchors.delete(wl);
+  if (checked) {
+    selectedAnchors.add(wl);
+    if (specImg && !sliderPositions.has(wl)) {
+      const x = Math.round(wlToX(wl));
+      sliderPositions.set(wl, Math.max(0, Math.min(imgW - 1, x)));
+    }
+  } else {
+    selectedAnchors.delete(wl);
+  }
 
   // Auto-switch fit method: 3+ anchors → 3pt, exactly 2 → 2pt
   const n = selectedAnchors.size;
@@ -1597,15 +1691,24 @@ function rebuildSliders() {
 // Sliders init + fit
 // ─────────────────────────────────────────────────────────────────────────────
 function initSliders() {
-  // Initialise proportional slider positions for all lines
-  const wls = ALL_LINES.map(l => l.wl);
-  const minWl = Math.min(...wls), maxWl = Math.max(...wls);
-  ALL_LINES.forEach(line => {
-    const frac = (maxWl - line.wl) / (maxWl - minWl); // 0 = red end, 1 = blue end
-    sliderPositions.set(line.wl, Math.round(imgW * (0.05 + frac * 0.90)));
+  // Evenly distribute selected anchors: anchor i (in ALL_LINES order) → (i+1)/(n+1)·imgW
+  const anchors = ALL_LINES.filter(l => selectedAnchors.has(l.wl));
+  const n = anchors.length;
+  anchors.forEach((line, i) => {
+    sliderPositions.set(line.wl, Math.round(imgW * (i + 1) / (n + 1)));
   });
   rebuildSliders();
   updateFit();
+}
+
+function positionNewAnchors() {
+  // Place any selected anchor that has no stored position using current calibration
+  selectedAnchors.forEach(wl => {
+    if (!sliderPositions.has(wl)) {
+      const x = Math.round(wlToX(wl));
+      sliderPositions.set(wl, Math.max(0, Math.min(imgW - 1, x)));
+    }
+  });
 }
 
 function getSliderVals() {
@@ -1699,7 +1802,8 @@ function drawOverlay() {
   const PAD       = 12;
   const stripH    = ROWS * lineH + PAD * 2;
 
-  const dispH = stripH + naturalH;
+  const scaleBarH = Math.max(22, Math.round(fontSize * 2.4));
+  const dispH = stripH + naturalH + scaleBarH;
   overlayC.width  = W * dpr;
   overlayC.height = dispH * dpr;
   overlayC.style.width  = W + 'px';
@@ -1803,6 +1907,58 @@ function drawOverlay() {
       ctx.fill();
     }
   });
+
+  // ── Pixel axis scale bar ──
+  const axisY      = stripH + naturalH;
+  const scaleFsz   = Math.max(9, Math.round(fontSize * 0.80));
+  const scaleFont  = `${scaleFsz}px "DM Mono", monospace`;
+  const tickBig    = Math.round(scaleBarH * 0.45);
+  const tickSmall  = Math.round(scaleBarH * 0.25);
+  const labelY     = axisY + tickBig + 2;
+
+  ctx.fillStyle = '#0a0b0e';
+  ctx.fillRect(0, axisY, W, scaleBarH);
+
+  ctx.strokeStyle = '#888888';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, axisY); ctx.lineTo(W, axisY); ctx.stroke();
+
+  // Pick nice tick steps so there are at most ~8 major / ~40 minor ticks
+  const niceStep = maxTicks => {
+    const candidates = [1,2,5,10,20,25,50,100,200,250,500,1000,2000,5000,10000];
+    return candidates.find(c => imgW / c <= maxTicks) || candidates[candidates.length - 1];
+  };
+  const majorStep = niceStep(8);
+  const minorStep = niceStep(40);
+
+  ctx.font = scaleFont;
+  ctx.textBaseline = 'top';
+
+  // "x [px]" unit label at far right — measure first to reserve space
+  const unitLbl    = 'x [px]';
+  const unitLblW   = ctx.measureText(unitLbl).width;
+  const unitLblX   = W - unitLblW - 3;
+  const reservedX  = unitLblX - 6; // tick labels must not reach past this x
+
+  for (let px = 0; px <= imgW; px += minorStep) {
+    const x = px * scaleX;
+    const isMajor = px % majorStep === 0;
+    ctx.strokeStyle = isMajor ? '#aaaaaa' : '#505050';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, axisY); ctx.lineTo(x, axisY + (isMajor ? tickBig : tickSmall)); ctx.stroke();
+    if (isMajor) {
+      const lbl = String(px);
+      const tw  = ctx.measureText(lbl).width;
+      const lx  = Math.max(0, x - tw / 2);
+      if (lx + tw <= reservedX) {
+        ctx.fillStyle = '#aaaaaa';
+        ctx.fillText(lbl, lx, labelY);
+      }
+    }
+  }
+
+  ctx.fillStyle = '#555555';
+  ctx.fillText(unitLbl, unitLblX, labelY);
 }
 
 window.addEventListener('resize', () => { if (specImg) drawOverlay(); });
@@ -1865,6 +2021,10 @@ function applyUnit(unit) {
   updateLineLabels();
   if (specImg) { updateFit(); drawOverlay(); }
 }
+
+document.getElementById('katalogSelect').addEventListener('change', function() {
+  switchCatalog(this.value);
+});
 
 document.querySelectorAll('label.unit-opt').forEach(label => {
   label.addEventListener('click', () => {
